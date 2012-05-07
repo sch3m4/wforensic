@@ -1,0 +1,49 @@
+<script language=javascript>
+var chart;
+$(document).ready(function() {
+	chart = new Highcharts.Chart({
+		chart: {
+			renderTo: 'whatsappusers',
+			plotBackgroundColor: '#f4f4f4',
+			plotBorderWidth: null,
+			plotShadow: false
+		},
+		title: {
+			text: 'Contacts with WhatsApp'
+		},
+		tooltip: {
+			formatter: function() {
+				return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
+			}
+		},
+		plotOptions: {
+			pie: {
+				allowPointSelect: true,
+				cursor: 'pointer',
+				dataLabels: {
+					enabled: true,
+					color: '#000000',
+					connectorColor: '#000000',
+					formatter: function() {
+						return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
+					}
+				}
+			}
+		},
+		series: [{
+			type: 'pie',
+			name: 'Whatsapp contacts',
+			data: [
+				['Others ({{nonwhatsappusers}})' , {{nonwhatsappusers}}],
+				{
+					name: 'WhatsApp ({{whatsappusers}})',
+					y: {{whatsappusers}},
+					sliced: true,
+					selected: true
+				}
+			]
+		}]
+	});
+});
+
+</script>

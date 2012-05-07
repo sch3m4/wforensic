@@ -1,0 +1,60 @@
+{% load gettemplateheader_tag %}
+<html>
+<head>
+	<script type="text/javascript" src="{{ STATIC_URL }}css/lib/jquery-1.7.1.min.js" ></script>
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/yaml/core/base.css" />
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/yaml/screen/typography.css" />
+	
+	<!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	
+	<!--[if lte IE 7]>
+		<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/yaml/core/iehacks.min.css" />
+	<![endif]-->
+
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/yaml/forms/gray-theme.css" />
+	
+	<style>
+	body { background-color:#f4f4f4; }
+	    .ym-wrapper {
+	   padding: 20px;
+    min-width: 760px;
+    max-width: 130em;
+    }
+    .ym-wbox { padding: 10px; }
+	.footer { width:auto; float:center; bottom: 3%; position:relative; }
+	</style>
+	
+<title>WhatsApp Forensics</title>
+{% block head %}{% endblock %}
+</head>
+<body>
+
+<center>
+<h2><img src="{{STATIC_URL}}img/logo.png" width="104px" height="142px"/></br>WhatsApp Forensic</h2>
+
+{% gettemplateheader %}
+<a href="{% url home %}">Home</a> | <a href="{% url contacts %}">Contacts</a> ({{theader.contacts}}) | <a href="{% url chats %}">Chat list</a> ({{theader.chats}}) | <a href="{% url messages %}">Messages</a> ({{theader.messages}}) | <a href="{% url messages_media %}">Media</a> ({{theader.media}}) |<a href="{% url messages_gps %}">GPS</a> ({{theader.gps}})
+
+<div class="ym-wrapper">
+	<div class="ym-wbox">
+		{% block body %}{% endblock %}
+	</div>
+</div>
+
+<p></br></p>
+<div align="center">
+	<div class="footer">
+		<em>
+			<a href="https://github.com/sch3m4/wforensic" target="_blank">WhatsApp Forensic v0.1a</a><br>
+			Written by <a href="mailto:chema@safetybits.net">Chema Garc&iacute;a</a> (aka <a href="https://twitter.com/sch3m4" target="_blank">sch3m4</a>) / <a href="http://safetybits.net" target="_blank">SafetyBits</a>
+		</em><br/><br/>
+		<img src="{{ STATIC_URL }}img/powered/django.png">
+		<img src="{{ STATIC_URL }}img/powered/sqlite.png">
+		<p></p>
+	</div>
+</div>
+
+</center>
+</body>

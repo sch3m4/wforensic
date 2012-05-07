@@ -1,0 +1,49 @@
+<script language=javascript>
+var chart;
+$(document).ready(function() {
+	chart = new Highcharts.Chart({
+		chart: {
+			renderTo: 'messagesfrom',
+			plotBackgroundColor: '#f4f4f4',
+			plotBorderWidth: null,
+			plotShadow: false
+		},
+		title: {
+			text: 'Messages from/to me'
+		},
+		tooltip: {
+			formatter: function() {
+				return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
+			}
+		},
+		plotOptions: {
+			pie: {
+				allowPointSelect: true,
+				cursor: 'pointer',
+				dataLabels: {
+					enabled: true,
+					color: '#000000',
+					connectorColor: '#000000',
+					formatter: function() {
+						return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
+					}
+				}
+			}
+		},
+		series: [{
+			type: 'pie',
+			name: 'Messages to/from',
+			data: [
+				['From me ({{fromme}})' , {{fromme}}],
+				{
+					name: 'To me ({{tome}})',
+					y: {{tome}},
+					sliced: true,
+					selected: true
+				}
+			]
+		}]
+	});
+});
+
+</script>

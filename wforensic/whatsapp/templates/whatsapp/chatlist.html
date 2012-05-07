@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="ym-g50">
+	<div style="background: red;">
+	<h6><span style="color: white;">Chat List</span></h6>
+	</div>
+	<div class="ym-gbox">
+	
+		<form class="ym-form">
+
+			{% for item in chatlist.object_list %}
+
+			<div class="ym-fbox-text" style="background: #e8ff99;">
+				<div class="ym-gr">
+					<div class="ym-gl" align="left"><b>{{item.count}}</b></div>
+				</div>
+				<div class="ym-gl" align="left">[<u>{{item.timestamp}}</u>]
+				<h6>
+					<img src="{{STATIC_URL}}img/thumb.png" width="24px" height="24px" />
+						<a href="{% url single_chat key=item.jid %}">{{item.display_name}}</a>
+				</h6>
+				<div align="left">
+					{% if item.img|length > 0 %}<img src="{{item.img}}"/>{% else %}{{item.latest}}{% endif %}
+				</div></div>
+			</div>
+			
+			{% endfor %}
+
+		</form>
+	<div>
+
+	<p></p>
+
+    {% if chatlist.has_previous %}
+        <a href="?page={{ chatlist.previous_page_number }}">&lt;&lt;</a>
+    {% endif %}
+    Page {{ chatlist.number }} of {{ chatlist.paginator.num_pages }}
+    {% if chatlist.has_next %}
+        <a href="?page={{ chatlist.next_page_number }}">&gt;&gt;</a>
+    {% endif %}
+
+</div>
+
+{% endblock %}

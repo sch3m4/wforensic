@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% if activity %}
+	{% block head %}
+		{% include "activitychart.html" %}
+	{% endblock %}
+{% endif %}
+
+{% block body %}
+
+{% if activity %}
+<script type="text/javascript" src="{{STATIC_URL}}js/highcharts.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/modules/exporting.js"></script>
+
+<div class="ym-g60">
+	<div id="wa_activity" style="margin: 0 auto"></div>
+</div>
+{% endif %}
+
+<div class="ym-g50">
+	<div style="background: red;">
+	<h6><span style="color: white;">{{PAG_TITLE}}</span></h6>
+	</div>
+	<div class="ym-gbox">
+	
+		<form class="ym-form">
+
+			{% for item in chatmessages.object_list %}
+
+			{% ifequal item.key_from_me 0 %}
+				<div class="ym-fbox-text" style="background: #e8ff99;">
+					<div class="ym-gr">{{item.received_timestamp}}</div>
+					<div class="ym-gl" align="left"><h6>
+						{% if item.media_url %}
+							<a target="_new" href="{{item.media_url}}"><img src="{{STATIC_URL}}img/media.png" width="24px" height="24px" /></a>
+						{% endif %}
+						{% if item.longitude %}
+							<a target="_new" href="https://maps.google.com/maps?q={{item.latitude}},+{{item.longitude}}+({{item.key_remote_jid}} / {{item.received_timestamp}})"><img src="{{STATIC_URL}}img/map.png" width=24px" height="24px" alt="{{item.latitude}},{{item.longitude}}"></a>
+						{% endif %}
+						<img src="{{STATIC_URL}}img/thumb.png" width="24px" height="24px" /><a href="{% url single_chat key=item.key_remote_jid %}">{{item.display_name}}</a></h6>
+
+			{% else %}
+				<div class="ym-fbox-text" style="background: #d1ffff;">
+					<div class="ym-gl">{{item.received_timestamp}}</div>
+					<div class="ym-gr" align="right"><h6>
+						<img src="{{STATIC_URL}}img/thumb.png" width="24px" height="24px" /><a href="{% url single_chat key=item.key_remote_jid %}">{{item.display_name}}</a> &lArr; Me
+						{% if item.media_url %}
+							<a target="_new" href="{{item.media_url}}"><img src="{{STATIC_URL}}img/media.png" width="24px" height="24px"/></a>
+						{% endif %}
+						{% if item.longitude %}
+							<a target="_new" href="https://maps.google.com/maps?q={{item.latitude}},+{{item.longitude}}+(Me / {{item.received_timestamp}})"><img src="{{STATIC_URL}}img/map.png" width=24px" height="24px" alt="{{item.latitude}},{{item.longitude}}"></a>
+						{% endif %}
+						</h6>
+			{% endifequal %}
+
+						<div>{% if item.img|length > 0 %}<img src="{{item.img}}"/>{% else %}{{item.data}}{% endif %}</div>
+					</div>
+				</div><br>
+
+			{% endfor %}
+
+		</form>
+	<div>
+
+</br>
+
+    {% if chatmessages.has_previous %}
+        <a href="?page={{ chatmessages.previous_page_number }}">&lt;&lt;</a>
+    {% endif %}
+    Page {{ chatmessages.number }} of {{ chatmessages.paginator.num_pages }}
+    {% if chatmessages.has_next %}
+        <a href="?page={{ chatmessages.next_page_number }}">&gt;&gt;</a>
+    {% endif %}
+
+</div>
+
+{% endblock %}

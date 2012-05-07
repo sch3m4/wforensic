@@ -1,0 +1,45 @@
+<script language=javascript>
+var chart;
+$(document).ready(function() {
+	chart = new Highcharts.Chart({
+		chart: {
+			renderTo: 'wa_activity',
+			plotBackgroundColor: '#f4f4f4',
+			type: 'spline'
+		},
+		title: {
+			text: 'Messages Activity'
+		},
+		xAxis: {
+			type: 'datetime',
+			dateTimeLabelFormats: { // don't display the dummy year
+				month: '%e. %b',
+				year: '%b'
+			}
+		},
+		yAxis: {
+			title: {
+				text: 'Messages count'
+			},
+			min: 0
+		},
+		tooltip: {
+			formatter: function() {
+					return '<b>'+ this.series.name +'</b><br/>'+
+					Highcharts.dateFormat('%e. %b', this.x) +': '+ this.y +' m';
+			}
+		},
+		
+		series:[
+		{% for item in activity %}
+			{name: '{{item.peer}}',
+			data:[
+			{% for data in item.dates %}
+				[ {{data.data}}{{data.count}} ],
+			{% endfor %}
+			]},
+		{% endfor %}
+		]
+	});
+});
+</script>
