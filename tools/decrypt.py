@@ -29,7 +29,7 @@
 
 try:
     from Crypto.Cipher import AES
-    from os.path import isfile,basename,exists
+    from os.path import isfile,dirname,exists
     import sys
 except ImportError,e:
     print "[f] Required module missing. %s" % e.args[0]
@@ -57,7 +57,8 @@ def main():
         print "[e] Cannot access to \"%s\"\n" % sys.argv[1]
         sys.exit(-2)
     
-    if not exists(sys.argv[2]):
+    dname = dirname(sys.argv[2])
+    if len(dname) > 0 and not exists(dname):
         print "[e] Path \"%s\" does not exists!\n" % sys.argv[2]
         sys.exit(-3)
     
@@ -73,7 +74,7 @@ def main():
     # open input file
     print "[i] Opening input file...." ,
     try:
-        ctext = open("/tmp/msgstore-2012-05-07.1.db.crypt",'rb')
+        ctext = open(sys.argv[1],'rb')
         print "OK"
     except Exception , e:
         print "ERROR: %s" % e.msg
@@ -82,7 +83,7 @@ def main():
     # open output file
     print "[i] Opening output file..." ,
     try:
-        ptext = open("/tmp/salida.db","wb")
+        ptext = open(sys.argv[2],"wb")
         print "OK"
     except Exception,e:
         print "ERROR: %s" % e.msg
