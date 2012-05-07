@@ -29,6 +29,7 @@
 
 try:
     from Crypto.Cipher import AES
+    from os.path import isfile,basename,exists
     import sys
 except ImportError,e:
     print "[f] Required module missing. %s" % e.args[0]
@@ -51,6 +52,14 @@ def main():
         print "[i] Usage: %s <encrypted_file> <output_file>" % sys.argv[0]
         print "\nExample: %s msgstore-2012-05-07.1.db.crypt msgstore-2012-05-07.1.db\n" % sys.argv[0]
         sys.exit(0)
+        
+    if not isfile(sys.argv[1]) or not exists(sys.argv[1]):
+        print "[e] Cannot access to \"%s\"\n" % sys.argv[1]
+        sys.exit(-2)
+    
+    if not exists(sys.argv[2]):
+        print "[e] Path \"%s\" does not exists!\n" % sys.argv[2]
+        sys.exit(-3)
     
     # shoulds never fail
     print "[i] Setting AES key......." ,
@@ -59,7 +68,7 @@ def main():
         print "OK"
     except Exception,e:
         print "ERROR: %s" % e.msg
-        sys.exit(-2)
+        sys.exit(-4)
     
     # open input file
     print "[i] Opening input file...." ,
@@ -68,7 +77,7 @@ def main():
         print "OK"
     except Exception , e:
         print "ERROR: %s" % e.msg
-        sys.exit(-3)
+        sys.exit(-5)
     
     # open output file
     print "[i] Opening output file..." ,
@@ -78,7 +87,7 @@ def main():
     except Exception,e:
         print "ERROR: %s" % e.msg
         ctext.close()
-        sys.exit(-4)
+        sys.exit(-6)
 
     # read input file and outputs decrypted block to output file
     print "[i] Decrypting............" ,
