@@ -10,7 +10,13 @@ class LoadHeader(template.Node):
         self.varname = varname
     
     def render(self,context):
-        ctx = {'contacts': WaContacts.objects.count(),
+        try:
+            contacts = WaContacts.objects.count()
+        except:
+            contacts = Messages.objects.using('msgstore').values('key_remote_jid').distinct().count()
+        
+        ctx = {
+               'contacts': contacts,
                'messages': Messages.objects.using('msgstore').count(),
                'chats': ChatList.objects.using('msgstore').count(),
                'gps': Messages.objects.using('msgstore').exclude((Q(longitude = '0.0') | Q(latitude = '0.0'))).count(),

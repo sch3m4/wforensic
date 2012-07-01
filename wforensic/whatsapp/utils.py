@@ -53,31 +53,57 @@ def get_sha1_file(path):
 def get_latest_peers():
     peers = [c['key_remote_jid'] for c in Messages.objects.using('msgstore').values('key_remote_jid').exclude(Q(key_remote_jid=-1)).annotate(models.Max('timestamp')).order_by('-timestamp__max')[:LATEST_PEERS]]
     ret = []
+    
     for peer in peers:
         data = Messages.objects.using('msgstore').filter(key_remote_jid = peer).values('data','_id','media_wa_type').annotate(models.Max('timestamp')).order_by('-timestamp__max')[:1][0]
-        peer_data = WaContacts.objects.filter(jid=peer).values('display_name')[0]
-        ret.append({'key_remote_jid': peer,
+        
+        try:
+            peer_data = WaContacts.objects.filter(jid=peer).values('display_name')[0]
+        except:
+            peer_data = {}
+            peer_data['display_name'] = peer
+            
+        display_name = peer_data['display_name']
+        
+        newdata = {'key_remote_jid': peer,
                     'media_wa_type': data['media_wa_type'],
                     '_id': data['_id'],
                     'timestamp': timestamp2utc(float(data['timestamp__max'])/1000),
                     'img': set_media(data['media_wa_type'],data['data'],str(data['_id'])),
                     'data': data['data'],
-                    'display_name': peer_data['display_name']
-                    })
+                    'display_name': display_name,
+                    }
+        
+        ret.append(newdata)
+        
     return ret        
 
 def get_top_peers():
     _tmp = Messages.objects.using('msgstore').values('key_remote_jid').exclude((Q(key_remote_jid = -1) | Q(key_remote_jid__startswith="Server"))).annotate(models.Count('key_remote_jid')).order_by('-key_remote_jid__count')[:TOP_PEERS]
     ret = []
     for item in _tmp:
-        _aux = WaContacts.objects.filter(jid = item['key_remote_jid']).values('number','display_name','status','jid')[0]
+        
+        try:
+            _aux = WaContacts.objects.filter(jid = item['key_remote_jid']).values('number','display_name','status','jid')[0]
+        except:
+            _aux = {}
+            _aux['number'] = item['key_remote_jid']
+            _aux['display_name'] = "Not in contacts"
+            _aux['status'] = "Not in contacts"
+            _aux['jid'] = item['key_remote_jid']
+            
+        
         _aux['msgs'] = item['key_remote_jid__count']
         ret.append(_aux)
     return ret
-            
+
 def get_contacts_list():
-    _list = WaContacts.objects.exclude(number__isnull = True).values('jid','number','display_name','status','is_whatsapp_user').order_by('display_name')
     
+    try:
+        _list = WaContacts.objects.exclude(number__isnull = True).values('jid','number','display_name','status','is_whatsapp_user').order_by('display_name')
+    except:
+        _list = Messages.objects.using('msgstore').values('key_remote_jid').distinct()
+
     _ret = []
     for item in _list:
         try:
@@ -102,7 +128,7 @@ def get_chat_list():
             _latest = _tmp[0]['data']
         except:
             _latest=''
-        
+
         try:
             _tstamp = timestamp2utc(float(_tmp[0]['timestamp__max'])/1000)
         except:
@@ -124,7 +150,12 @@ def get_chat_messages(jid = None):
     
     _aux = []
     for item in _msgs:
-        _peer = WaContacts.objects.filter(jid = item['key_remote_jid']).values('display_name')[0]
+        try:
+            _peer = WaContacts.objects.filter(jid = item['key_remote_jid']).values('display_name')[0]
+        except:
+            _peer = {}
+            _peer['display_name'] = jid
+            
         item['display_name'] = _peer['display_name']
         item['timestamp'] = timestamp2utc(float(item['timestamp'])/1000)
         item['received_timestamp'] = timestamp2utc(float(item['received_timestamp'])/1000)
@@ -197,7 +228,13 @@ def get_activity_data(key=None):
         try:
             peer_name = WaContacts.objects.filter(jid = peer['key_remote_jid']).values('display_name')[0]['display_name']
         except:
-            peer_name = 'Not in contacts'
+            try:
+                if '-' in peer['key_remote_jid']:
+                    peer_name = str(peer['key_remote_jid']).split('-')[0]
+                else:
+                    peer_name = str(peer['key_remote_jid']).split('@')[0]
+            except:
+                peer_name = peer['key_remote_jid']
 
         ret.append({'peer': peer_name , 'dates': sorted(aux.values(),key=itemgetter('data')) })
     return ret

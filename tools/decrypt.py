@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Copyright (c) 2012, Chema Garcia
@@ -26,6 +27,10 @@
 #    www.securitybydefault.com
 #    http://twitter.com/aramosf
 #
+# This tool is part of WhatsApp Forensic (https://github.com/sch3m4/wforensic)
+#
+# Version: 0.1
+#
 
 try:
     from Crypto.Cipher import AES
@@ -40,7 +45,7 @@ key = "\x34\x6a\x23\x65\x2a\x46\x39\x2b\x4d\x73\x25\x7c\x67\x31\x7e\x35\x2e\x33\
 def main():
     print """
     #######################################
-    #        WhatsApp Forensic Tool       #
+    #      WhatsApp Forensic Tool  0.2    #
     #-------------------------------------#
     #  Decrypts encrypted msgstore files  #
     #   This tool is part of WForensic    #
@@ -91,16 +96,24 @@ def main():
         sys.exit(-6)
 
     # read input file and outputs decrypted block to output file
-    print "[i] Decrypting............" ,
-    cbytes = 0    
+    print "\n[i] Decrypting" ,
+    cbytes = 0
+    backwards = 0
     for block in iter(lambda: ctext.read(AES.block_size), ''):
         ptext.write(aes.decrypt(block))
         cbytes += AES.block_size
-    
+
+        for i in range(backwards):
+            sys.stdout.write("\b")
+        backwards = len(str(cbytes)) + len(" Bytes") + 1
+        
+        print " %d Bytes" % cbytes ,
+        sys.stdout.flush()
+
     ctext.close()
     ptext.close()
     
-    print "OK (%d bytes)\n" % cbytes
+    print "\n\n[i] Done!\n"
 
 if __name__ == "__main__":
     main()

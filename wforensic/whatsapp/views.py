@@ -10,22 +10,38 @@ from utils import get_latest_peers,get_top_peers,get_contacts_list,get_chat_list
 
 def index(request):
     
-    dic = {'activity': get_activity_data(None),
-                'whatsappusers': WaContacts.objects.filter(is_whatsapp_user = 1).count(),
-                'nonwhatsappusers': WaContacts.objects.filter(is_whatsapp_user = 0).count(),
-                'fromme': Messages.objects.using('msgstore').filter(key_from_me = 1).count(),
-                'tome': Messages.objects.using('msgstore').filter(key_from_me = 0).count(),
-                'latest': get_latest_peers(),
-                'toppeers': get_top_peers(),
-                'msgsize': getsize(DATABASES['msgstore']['NAME']),
-                'msgfile': basename(DATABASES['msgstore']['NAME']),
-                'msgmd5': get_md5_file(DATABASES['msgstore']['NAME']),
-                'msgsha1': get_sha1_file(DATABASES['msgstore']['NAME']),
-                'wasize': getsize(DATABASES['default']['NAME']),
-                'wafile': basename(DATABASES['default']['NAME']),
-                'wamd5': get_md5_file(DATABASES['default']['NAME']),
-                'washa1': get_sha1_file(DATABASES['default']['NAME']),
-                }
+    try:
+        wusers = WaContacts.objects.filter(is_whatsapp_user = 1).count()
+        nwusers = WaContacts.objects.filter(is_whatsapp_user = 0).count()
+        wasize = getsize(DATABASES['default']['NAME'])
+        wafile = basename(DATABASES['default']['NAME'])
+        wamd5 = get_md5_file(DATABASES['default']['NAME'])
+        washa1 = get_sha1_file(DATABASES['default']['NAME'])
+    except:
+        wusers = Messages.objects.using('msgstore').values('key_remote_jid').distinct().count()
+        nwusers = 0
+        wasize = 0
+        wafile = "Not found!"
+        wamd5 = "N/A"
+        washa1 = "N/A"
+    
+    dic = {
+            'whatsappusers': wusers,
+            'nonwhatsappusers': nwusers,
+            'activity': get_activity_data(None),
+            'fromme': Messages.objects.using('msgstore').filter(key_from_me = 1).count(),
+            'tome': Messages.objects.using('msgstore').filter(key_from_me = 0).count(),
+            'latest': get_latest_peers(),
+            'toppeers': get_top_peers(),
+            'msgsize': getsize(DATABASES['msgstore']['NAME']),
+            'msgfile': basename(DATABASES['msgstore']['NAME']),
+            'msgmd5': get_md5_file(DATABASES['msgstore']['NAME']),
+            'msgsha1': get_sha1_file(DATABASES['msgstore']['NAME']),
+            'wasize': wasize,
+            'wafile': wafile,
+            'wamd5': wamd5,
+            'washa1': washa1,
+            }
 
     return render_to_response('whatsapp/index.html',dic,context_instance=RequestContext(request))
 
@@ -52,11 +68,19 @@ def contacts(request):
     
     contact_list = get_contacts_list()
     contacts = pagination(request,contact_list,CONTACTS_PER_PAGE)
+    
+    try:
+        wusers = WaContacts.objects.filter(is_whatsapp_user = 1).count()
+        nwusers = WaContacts.objects.filter(is_whatsapp_user = 0).count()
+    except:
+        wusers = Messages.objects.using('msgstore').values('key_remote_jid').distinct().count()
+        nwusers = 0
 
     dic = {'contactslist': contacts,
-                'whatsappusers': WaContacts.objects.filter(is_whatsapp_user = 1).count(),
-                'nonwhatsappusers': WaContacts.objects.filter(is_whatsapp_user = 0).count()
+                'whatsappusers': wusers,
+                'nonwhatsappusers': nwusers,
                 }
+    
     return render_to_response('whatsapp/contacts.html',dic,context_instance=RequestContext(request))
 
 def single_chat(request,key):
