@@ -23,10 +23,6 @@
 #      http://safetybits.net
 #      http://twitter.com/sch3m4
 #
-# Thanks to Alejandro Ramos
-#    www.securitybydefault.com
-#    http://twitter.com/aramosf
-#
 # This tool is part of WhatsApp Forensic (https://github.com/sch3m4/wforensic)
 #
 # Version: 0.1
