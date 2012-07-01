@@ -1,11 +1,12 @@
 WForensic
 =========
 
-User-friendly DJango project to data interpretation and chart of messages activity from WhatsApp records.
+User-friendly DJango project to data interpretation and chart of messages activity from WhatsApp records, and also provides tools for decrypting encrypted 'msgstored' files and to merge many SQLite3 database files into a single one
 
 
-Getting the source
-==================
+
+[+] Getting the source
+======================
 
 ~$ git clone git://github.com/sch3m4/wforensic.git
 Cloning into 'wforensic'...
@@ -14,11 +15,12 @@ remote: Compressing objects: 100% (117/117), done.
 remote: Total 136 (delta 11), reused 135 (delta 10)
 Receiving objects: 100% (136/136), 364.66 KiB | 163 KiB/s, done.
 Resolving deltas: 100% (11/11), done.
-~$ 
+~$
 
 
-Initializing the environment
-===========================
+
+[+] Initializing the environment
+================================
 ~$ cd wforensic/
 ~/wforensic$ cp -v /tmp/*.db .
 `/tmp/msgstore.db' -> `./msgstore.db'
@@ -31,11 +33,12 @@ msgstore.db
 tools
 wa.db
 wforensic
-~/wforensic$ 
+~/wforensic$
 
 
-Using an gzipped unencrypted msgstore
-=====================================
+
+[+] Using an gzipped unencrypted msgstore
+=========================================
 ~$ gzip -d whatsapp-2012-05-03.1.log.gz
 ~$ mv whatsapp-2012-05-03.1.log wforensic/msgstore.db
 ~$ python wforensic/wforensic/manage.py runserver
@@ -47,8 +50,9 @@ Development server is running at http://127.0.0.1:8000/
 Quit the server with CONTROL-C.
 
 
-Decrypting msgstore-YYYY-MM-DD.X.db.crypt
-=========================================
+
+[+] Decrypting msgstore encrypted files
+=======================================
 ~/wforensic$ ~/android-sdk-linux_x86/platform-tools/adb pull /sdcard/WhatsApp/Databases/msgstore-2012-05-08.1.db.crypt .
 641 KB/s (40976 bytes in 0.062s)
 ~/wforensic$ python tools/decrypt.py ./msgstore-2012-05-08.1.db.crypt ./msgstore.db 
@@ -64,8 +68,17 @@ Decrypting msgstore-YYYY-MM-DD.X.db.crypt
 [i] Setting AES key....... OK
 [i] Opening input file.... OK
 [i] Opening output file... OK
-[i] Decrypting............ OK (40976 bytes)
 
+[i] Decrypting  1311760 Bytes 
+
+[i] Done!
+
+~/wforensic$
+
+
+
+[+] Running DJango
+==================
 ~/wforensic$ python wforensic/manage.py runserver
 Validating models...
 

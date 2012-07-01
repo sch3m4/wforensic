@@ -114,6 +114,7 @@ def merge(path,pattern,dest):
             continue
         
         len1 = 0
+        backwards = 0
         
         print "+ Merging: %s -> " % filename ,
         sys.stdout.flush()
@@ -133,7 +134,10 @@ def merge(path,pattern,dest):
             len1 += lenline
             len2 += lenline
             
-            output.execute(line)
+            try:
+                output.execute(line)
+            except sqlite3.OperationalError, msg:
+                print "\n[w] %s\n" % msg
             
             # print progress
             for i in range(backwards):
