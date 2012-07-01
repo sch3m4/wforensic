@@ -29,7 +29,7 @@
 #
 # This tool is part of WhatsApp Forensic (https://github.com/sch3m4/wforensic)
 #
-# Version: 0.1
+# Version: 0.2
 #
 
 try:
