@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 #
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!! THIS SCRIPT IS NOT WORKING DUE TO PRIMARY KEY AND UNIQUE VALUES MISTAKES !!!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#
+#
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Copyright (c) 2012, Chema Garcia
 # All rights reserved.
@@ -99,8 +104,6 @@ def dump_iterator(connection):
     for name, type, sql in schema_res.fetchall():
         yield('%s;' % sql)
 
-    yield('COMMIT;')
-
 def merge(path,pattern,dest):
     
     output = sqlite3.connect(dest)
@@ -124,9 +127,10 @@ def merge(path,pattern,dest):
         for line in dump_iterator(orig):
             try:
                 lenline = len(str(line))
-                
-                if str(line).lower() == "commit;":
-                    continue
+
+                if str(line)[:6] == "CREATE":
+                    line = str(line).replace("UNIQUE","")
+                    line = str(line).replace("PRIMARY KEY AUTOINCREMENT","")
             except:
                 lenline = 0
                 pass
@@ -137,7 +141,7 @@ def merge(path,pattern,dest):
             try:
                 output.execute(line)
             except sqlite3.OperationalError, msg:
-                print "\n[w] %s\n" % msg
+                pass
             
             # print progress
             for i in range(backwards):

@@ -29,74 +29,63 @@
 #
 # This tool is part of WhatsApp Forensic (https://github.com/sch3m4/wforensic)
 #
-# Version: 0.2
+# Version: 0.3
 #
 
 try:
-    from Crypto.Cipher import AES
-    from os.path import isfile,dirname,exists
+    import os
     import sys
+    import errno
+    import sqlite3
+    from Crypto.Cipher import AES
 except ImportError,e:
     print "[f] Required module missing. %s" % e.args[0]
     sys.exit(-1)
     
 key = "\x34\x6a\x23\x65\x2a\x46\x39\x2b\x4d\x73\x25\x7c\x67\x31\x7e\x35\x2e\x33\x72\x48\x21\x77\x65\x2c"
+aes = None
 
-def main():
-    print """
-    #######################################
-    #      WhatsApp Forensic Tool  0.2    #
-    #-------------------------------------#
-    #  Decrypts encrypted msgstore files  #
-    #   This tool is part of WForensic    #
-    # https://github.com/sch3m4/wforensic #
-    #######################################
-    """
+def getinfo(path):
+    db = sqlite3.connect(path)
+    cur = db.cursor()
+    res = cur.execute("SELECT COUNT(*) FROM messages UNION ALL SELECT COUNT(DISTINCT key_remote_jid) FROM chat_list;").fetchall()
+    cur.close()
+    db.close()
     
-    if not len(sys.argv) is 3:
-        print "[i] Usage: %s <encrypted_file> <output_file>" % sys.argv[0]
-        print "\nExample: %s msgstore-2012-05-07.1.db.crypt msgstore-2012-05-07.1.db\n" % sys.argv[0]
-        sys.exit(0)
-        
-    if not isfile(sys.argv[1]) or not exists(sys.argv[1]):
-        print "[e] Cannot access to \"%s\"\n" % sys.argv[1]
-        sys.exit(-2)
+    return (res[0][0],res[1][0])
+
+def decrypt_file(path,dest):
+    global aes
     
-    dname = dirname(sys.argv[2])
-    if len(dname) > 0 and not exists(dname):
-        print "[e] Path \"%s\" does not exists!\n" % sys.argv[2]
-        sys.exit(-3)
-    
-    # shoulds never fail
-    print "[i] Setting AES key......." ,
-    try:
-        aes = AES.new(key,AES.MODE_ECB)
-        print "OK"
-    except Exception,e:
-        print "ERROR: %s" % e.msg
-        sys.exit(-4)
+    if aes is None:
+        # shoulds never fail
+        print "[i] Setting AES key......." ,
+        try:
+            aes = AES.new(key,AES.MODE_ECB)
+            print "OK"
+        except Exception,e:
+            print "ERROR: %s" % e.msg
+            sys.exit(-4)
     
     # open input file
-    print "[i] Opening input file...." ,
+    print "\n[+] Decrypting %s (%s) ->" % (os.path.basename(path),os.path.basename(dest)) ,
+    sys.stdout.flush()
+    
     try:
-        ctext = open(sys.argv[1],'rb')
-        print "OK"
+        ctext = open(path,'rb')
     except Exception , e:
         print "ERROR: %s" % e.msg
         sys.exit(-5)
     
     # open output file
-    print "[i] Opening output file..." ,
     try:
-        ptext = open(sys.argv[2],"wb")
-        print "OK"
+        ptext = open(dest,"wb")
     except Exception,e:
         print "ERROR: %s" % e.msg
         ctext.close()
         sys.exit(-6)
 
     # read input file and outputs decrypted block to output file
-    print "\n[i] Decrypting" ,
     cbytes = 0
     backwards = 0
     for block in iter(lambda: ctext.read(AES.block_size), ''):
@@ -105,17 +94,96 @@ def main():
 
         for i in range(backwards):
             sys.stdout.write("\b")
-        backwards = len(str(cbytes)) + len(" Bytes") + 1
+        backwards = len(str(cbytes)) + len(" Bytes")
         
-        print " %d Bytes" % cbytes ,
+        print "%d Bytes" % cbytes ,
         sys.stdout.flush()
 
     ctext.close()
     ptext.close()
     
-    print "\n\n[i] Done!\n"
+    totmsg,peermsg = getinfo(dest)
+    print "\n\t+ %d Messages from %d contacts" % (totmsg,peermsg)
+    sys.stdout.flush()
 
+def decrypt_dir(path,dest):
+    global aes
+
+    # shoulds never fail
+    print "[i] Setting AES key......." ,
+    try:
+        aes = AES.new(key,AES.MODE_ECB)
+        print "OK"
+    except Exception,e:
+        print "ERROR: %s" % e.msg
+        sys.exit(-4)
+        
+    for filename in os.listdir(path):
+        if not os.path.isfile(path + filename):
+            continue
+        
+        decrypt_file(path+filename,dest+filename.replace(".crypt",""))
+
+    return
+
+def usage(base):
+    print "[i] Usage: %s [options] <output>" % base
+    print "\n+ Options:"
+    print "\t-f | --file <path> --------> Path to file to be decrypted"
+    print "\t-d | --dir <path> ---------> Directory containing encrypted 'msgstore' files"
+    print "\n+ Example: %s -f msgstore-2012-05-07.1.db.crypt msgstore-2012-05-07.1.db" % base
+    print "+ Example: %s -d msgFiles/ plain/\n" % base
+    sys.exit(0)
+        
 if __name__ == "__main__":
-    main()
+    print """
+    #######################################
+    #      WhatsApp Forensic Tool  0.3    #
+    #-------------------------------------#
+    #  Decrypts encrypted msgstore files  #
+    #   This tool is part of WForensic    #
+    # https://github.com/sch3m4/wforensic #
+    #######################################
+    """
+    
+    if not len(sys.argv) is 4:
+        usage(sys.argv[0])
+    
+    if not sys.argv[1] in ["-f","--file","-d","--dir"]:
+        usage(sys.argv[0])
+    
+    sys.argv[1] = sys.argv[1].replace("--file","-f")
+    sys.argv[1] = sys.argv[1].replace("--dir","-d")
+    
+    # decrypt the whole directory
+    if sys.argv[1] == "-d":
+        
+        if sys.argv[2][-1:] != '/':
+            sys.argv[2] += '/'
+
+        if sys.argv[3][-1:] != '/':
+            sys.argv[3] += '/'
+                        
+        if not os.path.isdir(sys.argv[2]):
+            print "[e] Input directory not found!"
+            sys.exit(-1)
+        
+        try:
+            os.makedirs(os.path.dirname(sys.argv[3]))
+        except OSError as err:
+            if err.errno == errno.EEXIST:
+                pass
+            else:
+                print "[e] Error creating output directory: %s\n"
+                sys.exit(-2)
+                
+        decrypt_dir ( sys.argv[2] , sys.argv[3] )
+    elif not os.path.isfile(sys.argv[2]):
+        print "[e] Input file not found!"
+        sys.exit(-3)
+    else: # decrypt a single file
+        decrypt_file ( sys.argv[2] , sys.argv[3] )
+
+    print "\n[+] Done!\n"        
     sys.exit(0)
     

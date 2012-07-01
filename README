@@ -51,14 +51,12 @@ Quit the server with CONTROL-C.
 
 
 
-[+] Decrypting msgstore encrypted files
-=======================================
-~/wforensic$ ~/android-sdk-linux_x86/platform-tools/adb pull /sdcard/WhatsApp/Databases/msgstore-2012-05-08.1.db.crypt .
-641 KB/s (40976 bytes in 0.062s)
-~/wforensic$ python tools/decrypt.py ./msgstore-2012-05-08.1.db.crypt ./msgstore.db 
+[+] Decrypting all msgstore encrypted files
+=========================================
+$ python decrypt.py -d WhatsApp/Databases/ ./plain/
 
     #######################################
-    #        WhatsApp Forensic Tool       #
+    #      WhatsApp Forensic Tool  0.3    #
     #-------------------------------------#
     #  Decrypts encrypted msgstore files  #
     #   This tool is part of WForensic    #
@@ -66,14 +64,56 @@ Quit the server with CONTROL-C.
     #######################################
     
 [i] Setting AES key....... OK
-[i] Opening input file.... OK
-[i] Opening output file... OK
 
-[i] Decrypting  1311760 Bytes 
+[+] Decrypting msgstore-2012-06-29.1.db.crypt (msgstore-2012-06-29.1.db) -> 1282064 Bytes 
+	+ 4765 Messages from 23 contacts 
+	
+[+] Decrypting msgstore.db.crypt (msgstore.db) -> 1311760 Bytes 
+	+ 4922 Messages from 25 contacts 
+	
+[+] Decrypting msgstore-2012-06-28.1.db.crypt (msgstore-2012-06-28.1.db) -> 1258512 Bytes 
+	+ 4673 Messages from 23 contacts 
+	
+[+] Decrypting msgstore-2012-06-24.1.db.crypt (msgstore-2012-06-24.1.db) -> 1243152 Bytes 
+	+ 4618 Messages from 23 contacts 
+	
+[+] Decrypting msgstore-2012-06-25.1.db.crypt (msgstore-2012-06-25.1.db) -> 1246224 Bytes 
+	+ 4631 Messages from 23 contacts 
+	
+[+] Decrypting msgstore-2012-06-26.1.db.crypt (msgstore-2012-06-26.1.db) -> 1249296 Bytes 
+	+ 4633 Messages from 23 contacts 
+	
+[+] Decrypting msgstore-2012-06-30.1.db.crypt (msgstore-2012-06-30.1.db) -> 1289232 Bytes 
+	+ 4807 Messages from 24 contacts 
+	
+[+] Decrypting msgstore-2012-07-01.1.db.crypt (msgstore-2012-07-01.1.db) -> 1311760 Bytes 
+	+ 4919 Messages from 25 contacts 
 
-[i] Done!
+[+] Done!
+$
 
-~/wforensic$
+
+
+[+] Decrypting a msgstore encrypted file
+===========================================
+$ python decrypt.py -f WhatsApp/Databases/msgstore.db.crypt plain/msgstore1.db
+
+    #######################################
+    #      WhatsApp Forensic Tool  0.3    #
+    #-------------------------------------#
+    #  Decrypts encrypted msgstore files  #
+    #   This tool is part of WForensic    #
+    # https://github.com/sch3m4/wforensic #
+    #######################################
+    
+[i] Setting AES key....... OK
+
+[+] Decrypting msgstore.db.crypt (msgstore.db) -> 1311760 Bytes 
+	+ 4922 Messages from 25 contacts 
+
+[+] Done!
+
+$
 
 
 
