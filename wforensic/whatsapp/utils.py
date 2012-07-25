@@ -12,7 +12,7 @@ try:
 except ImportError,e:
     print "[f] Required module missing. %s" % e.args[0]
     sys.exit(-1)
-    
+
 def timestamp2utc(timestamp):
     return datetime.utcfromtimestamp(timestamp).strftime ("%Y/%m/%d %H:%M:%S")
 
@@ -22,7 +22,10 @@ def set_media(wa_type,data,idmsg):
             if isfile(path):
                 THUMBS_URL + basename(path)
             else:
-                content = base64.b64decode(data)
+                try:
+                    content = base64.b64decode(data)
+                except:
+                    return ''
                 fout = open(path, "w")
                 fout.write(content)
                 fout.close()
@@ -53,18 +56,18 @@ def get_sha1_file(path):
 def get_latest_peers():
     peers = [c['key_remote_jid'] for c in Messages.objects.using('msgstore').values('key_remote_jid').exclude(Q(key_remote_jid=-1)).annotate(models.Max('timestamp')).order_by('-timestamp__max')[:LATEST_PEERS]]
     ret = []
-    
+
     for peer in peers:
         data = Messages.objects.using('msgstore').filter(key_remote_jid = peer).values('data','_id','media_wa_type').annotate(models.Max('timestamp')).order_by('-timestamp__max')[:1][0]
-        
+
         try:
             peer_data = WaContacts.objects.filter(jid=peer).values('display_name')[0]
         except:
             peer_data = {}
             peer_data['display_name'] = peer
-            
+
         display_name = peer_data['display_name']
-        
+
         newdata = {'key_remote_jid': peer,
                     'media_wa_type': data['media_wa_type'],
                     '_id': data['_id'],
@@ -73,16 +76,16 @@ def get_latest_peers():
                     'data': data['data'],
                     'display_name': display_name,
                     }
-        
+
         ret.append(newdata)
-        
-    return ret        
+
+    return ret
 
 def get_top_peers():
     _tmp = Messages.objects.using('msgstore').values('key_remote_jid').exclude((Q(key_remote_jid = -1) | Q(key_remote_jid__startswith="Server"))).annotate(models.Count('key_remote_jid')).order_by('-key_remote_jid__count')[:TOP_PEERS]
     ret = []
     for item in _tmp:
-        
+
         try:
             _aux = WaContacts.objects.filter(jid = item['key_remote_jid']).values('number','display_name','status','jid')[0]
         except:
@@ -91,14 +94,14 @@ def get_top_peers():
             _aux['display_name'] = "Not in contacts"
             _aux['status'] = "Not in contacts"
             _aux['jid'] = item['key_remote_jid']
-            
-        
+
+
         _aux['msgs'] = item['key_remote_jid__count']
         ret.append(_aux)
     return ret
 
 def get_contacts_list():
-    
+
     try:
         _list = WaContacts.objects.exclude(number__isnull = True).values('jid','number','display_name','status','is_whatsapp_user').order_by('display_name')
     except:
@@ -111,7 +114,7 @@ def get_contacts_list():
         except:
             item['messages'] = 0
         _ret.append(item)
-    
+
     return _ret
 
 def get_chat_list():
@@ -142,12 +145,12 @@ def get_chat_list():
     return _ret
 
 def get_chat_messages(jid = None):
-    
+
     if jid is not None:
         _msgs = Messages.objects.using('msgstore').filter(key_remote_jid = jid).values('media_wa_type','_id','key_remote_jid','key_from_me','data','timestamp','received_timestamp','media_url','latitude','longitude').order_by('-timestamp')
     else:
         _msgs = Messages.objects.using('msgstore').exclude(key_remote_jid = -1).values('media_wa_type','_id','key_remote_jid','key_from_me','data','timestamp','received_timestamp','media_url','latitude','longitude').order_by('-timestamp')
-    
+
     _aux = []
     for item in _msgs:
         try:
@@ -155,17 +158,17 @@ def get_chat_messages(jid = None):
         except:
             _peer = {}
             _peer['display_name'] = jid
-            
+
         item['display_name'] = _peer['display_name']
         item['timestamp'] = timestamp2utc(float(item['timestamp'])/1000)
         item['received_timestamp'] = timestamp2utc(float(item['received_timestamp'])/1000)
         item['img'] = set_media(item['media_wa_type'],item['data'],str(item['_id']))
         _aux.append(item)
-    
+
     return _aux
 
 def get_messages_media():
-    
+
     _msgs = Messages.objects.using('msgstore').exclude((Q(key_remote_jid = -1) | Q(media_url__isnull = True))).values('media_wa_type','_id','key_remote_jid','key_from_me','data','timestamp','received_timestamp','media_url','latitude','longitude').order_by('-timestamp')
 
     _aux = []
@@ -176,11 +179,11 @@ def get_messages_media():
         item['received_timestamp'] = timestamp2utc(float(item['received_timestamp'])/1000)
         item['img'] = set_media(item['media_wa_type'],item['data'],str(item['_id']))
         _aux.append(item)
-    
+
     return _aux
 
 def get_messages_gps():
-    
+
     _msgs = Messages.objects.using('msgstore').exclude((Q(key_remote_jid = -1) | Q(longitude = '0.0') | Q(latitude = '0.0'))).values('media_wa_type','_id','key_remote_jid','key_from_me','data','timestamp','received_timestamp','media_url','latitude','longitude').order_by('-timestamp')
 
     _aux = []
@@ -191,16 +194,16 @@ def get_messages_gps():
         item['received_timestamp'] = timestamp2utc(float(item['received_timestamp'])/1000)
         item['img'] = set_media(item['media_wa_type'],item['data'],str(item['_id']))
         _aux.append(item)
-    
+
     return _aux
 
 def get_activity_data(key=None):
-    
+
     if key is None:
         peers = ChatList.objects.using('msgstore').values('key_remote_jid').exclude(Q(key_remote_jid = -1))
     else:
         peers = [{'key_remote_jid': key}]
-        
+
     ret = []
     for peer in peers:
         timestamps = Messages.objects.using('msgstore').filter(key_remote_jid = peer['key_remote_jid']).values('timestamp').order_by('timestamp')
@@ -209,7 +212,7 @@ def get_activity_data(key=None):
         for time in timestamps:
             n = datetime.utcfromtimestamp(float(time['timestamp'])/1000)
             count += 1
-            
+
             key = str(n.year) + ','
             if len(str(n.month-1)) == 1:
                 key += '0' + str(n.month-1) + ','
@@ -219,12 +222,12 @@ def get_activity_data(key=None):
                 key += '0' + str(n.day) + '),'
             else:
                 key += str(n.day) + '),'
-                
+
             try:
                 aux[key] = {'data': 'Date.UTC(' + key , 'count': aux[key]['count'] + 1 }
             except:
                 aux[key] = {'data': 'Date.UTC(' + key , 'count': 1 }
-            
+
         try:
             peer_name = WaContacts.objects.filter(jid = peer['key_remote_jid']).values('display_name')[0]['display_name']
         except:
@@ -238,4 +241,3 @@ def get_activity_data(key=None):
 
         ret.append({'peer': peer_name , 'dates': sorted(aux.values(),key=itemgetter('data')) })
     return ret
-    
