@@ -65,7 +65,7 @@
 				{% if item.img|length > 0 %}
 					<img src="{{item.img}}"/>
 				{% else %}
-					{{item.data|default_if_none:"No data available"}}
+					{{item.data|default:"No data available"}}
 				{% endif %}
 			</div>
 			</div>
