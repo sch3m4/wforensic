@@ -27,35 +27,49 @@
 
 			{% for item in chatmessages.object_list %}
 
+
 			{% ifequal item.key_from_me 0 %}
 				<div class="ym-fbox-text" style="background: #e8ff99;">
 					<div class="ym-gr">{{item.received_timestamp}}</div>
-					<div class="ym-gl" align="left"><h6>
-						{% if item.media_url %}
-							<a target="_new" href="{{item.media_url}}"><img src="{{STATIC_URL}}img/media.png" width="24px" height="24px" /></a>
-						{% endif %}
-						{% if item.longitude %}
-							<a target="_new" href="https://maps.google.com/maps?q={{item.latitude}},+{{item.longitude}}+({{item.key_remote_jid}} / {{item.received_timestamp}})"><img src="{{STATIC_URL}}img/map.png" width=24px" height="24px" alt="{{item.latitude}},{{item.longitude}}"></a>
-						{% endif %}
-						<img src="{{STATIC_URL}}img/thumb.png" width="24px" height="24px" /><a href="{% url single_chat key=item.key_remote_jid %}">{{item.display_name}}</a></h6>
-
+					<div class="ym-gl" align="left">
 			{% else %}
 				<div class="ym-fbox-text" style="background: #d1ffff;">
 					<div class="ym-gl">{{item.received_timestamp}}</div>
-					<div class="ym-gr" align="right"><h6>
-						<img src="{{STATIC_URL}}img/thumb.png" width="24px" height="24px" /><a href="{% url single_chat key=item.key_remote_jid %}">{{item.display_name}}</a> &lArr; Me
-						{% if item.media_url %}
-							<a target="_new" href="{{item.media_url}}"><img src="{{STATIC_URL}}img/media.png" width="24px" height="24px"/></a>
-						{% endif %}
-						{% if item.longitude %}
-							<a target="_new" href="https://maps.google.com/maps?q={{item.latitude}},+{{item.longitude}}+(Me / {{item.received_timestamp}})"><img src="{{STATIC_URL}}img/map.png" width=24px" height="24px" alt="{{item.latitude}},{{item.longitude}}"></a>
-						{% endif %}
-						</h6>
+					<div class="ym-gr" align="right">
+			{% endifequal %}
+			<h6>
+
+			{% if item.media_url %}
+				<a target="_new" href="{{item.media_url}}"><img src="{{STATIC_URL}}img/media.png" width="24px" height="24px" /></a>
+			{% endif %}
+
+
+			{% if item.longitude %}
+				{% ifequal item.key_from_me 0 %}
+					<a target="_new" href="https://maps.google.com/maps?q={{item.latitude}},+{{item.longitude}}+({{item.key_remote_jid}} / {{item.received_timestamp}})"><img src="{{STATIC_URL}}img/map.png" width=24px" height="24px" alt="{{item.latitude}},{{item.longitude}}"></a>
+				{% else %}
+					<a target="_new" href="https://maps.google.com/maps?q={{item.latitude}},+{{item.longitude}}+(Me / {{item.received_timestamp}})"><img src="{{STATIC_URL}}img/map.png" width=24px" height="24px" alt="{{item.latitude}},{{item.longitude}}"></a>
+				{% endifequal %}
+			{% endif %}
+
+
+			<img src="{{STATIC_URL}}img/thumb.png" width="24px" height="24px" /><a href="{% url single_chat key=item.key_remote_jid %}">{{item.display_name}}</a>
+
+			{% ifequal item.key_from_me 1 %}
+				&lArr; Me
 			{% endifequal %}
 
-						<div>{% if item.img|length > 0 %}<img src="{{item.img}}"/>{% else %}{{item.data}}{% endif %}</div>
-					</div>
-				</div><br>
+			</h6>
+
+			<div>
+				{% if item.img|length > 0 %}
+					<img src="{{item.img}}"/>
+				{% else %}
+					{{item.data|default_if_none:"No data available"}}
+				{% endif %}
+			</div>
+			</div>
+			</div><br>
 
 			{% endfor %}
 
