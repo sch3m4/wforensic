@@ -78,17 +78,19 @@ User-friendly DJango project to data interpretation and chart of messages activi
 
 ## Environment schema
 
-    ~/wforensic$ cp -v /tmp/*.db .
-    '/tmp/msgstore.db' -> `./msgstore.db'
-    '/tmp/wa.db' -> `./wa.db'
+    ~/wforensic$ cp -v /tmp/*.db ./databases/
+    '/tmp/msgstore.db' -> `./databases/msgstore.db'
+    '/tmp/wa.db' -> `./databases/wa.db'
     ~/wforensic$ ls -1
     CHANGELOG
+    databases
     LICENSE
     README
-    **msgstore.db**
     tools
-    **wa.db**
     wforensic
+    ~/wforensic$ ls -1 databases/
+    msgstore.db
+    wa.db
     ~/wforensic$
 
 ## Running DJango
