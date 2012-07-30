@@ -21,11 +21,11 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': dirname(SITE_ROOT) + '/wa.db',
+        'NAME': dirname(SITE_ROOT) + '/databases/wa.db',
     },
     'msgstore': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': dirname(SITE_ROOT) + '/msgstore.db',
+        'NAME': dirname(SITE_ROOT) + '/databases/msgstore.db',
     }
 }
 
