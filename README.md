@@ -1,7 +1,6 @@
 # WForensic
 
-User-friendly DJango project to data interpretation and chart of messages activity from WhatsApp records, and also provides tools for decrypting encrypted 'msgstored' files and to merge many SQLite3 database files into a single one
-
+User-friendly DJango project to data interpretation and chart of messages activity from WhatsApp records, and also provides tools for decrypting encrypted 'msgstored' files and to merge many msgstore database files into a single one
 
 
 ## Getting the source
@@ -14,34 +13,6 @@ User-friendly DJango project to data interpretation and chart of messages activi
     Receiving objects: 100% (136/136), 364.66 KiB | 163 KiB/s, done.
     Resolving deltas: 100% (11/11), done.
     ~$`
-
-## Initializing the environment
-
-    ~$ cd wforensic/
-        ~/wforensic$ cp -v /tmp/*.db .
-    '/tmp/msgstore.db' -> `./msgstore.db'
-    '/tmp/wa.db' -> `./wa.db'
-    ~/wforensic$ ls -1
-    CHANGELOG
-    LICENSE
-    README
-    msgstore.db
-    tools
-    wa.db
-    wforensic
-    ~/wforensic$
-
-##  Using an gzipped unencrypted msgstore
-
-    ~$ gzip -d whatsapp-2012-05-03.1.log.gz
-    ~$ mv whatsapp-2012-05-03.1.log wforensic/msgstore.db
-    ~$ python wforensic/wforensic/manage.py runserver
-    Validating models...
-    
-    0 errors found
-    Django version 1.4, using settings 'wforensic.settings'
-    Development server is running at http://127.0.0.1:8000/
-    Quit the server with CONTROL-C.
 
 ## Decrypting all msgstore encrypted files
 
@@ -84,7 +55,7 @@ User-friendly DJango project to data interpretation and chart of messages activi
     [+] Done!
     $
 
-## Decrypting a msgstore encrypted file
+## Decrypting a single msgstore encrypted file
 
     $ python decrypt.py -f WhatsApp/Databases/msgstore.db.crypt plain/msgstore1.db
     
@@ -104,6 +75,21 @@ User-friendly DJango project to data interpretation and chart of messages activi
     [+] Done!
     
     $
+
+## Environment schema
+
+    ~/wforensic$ cp -v /tmp/*.db .
+    '/tmp/msgstore.db' -> `./msgstore.db'
+    '/tmp/wa.db' -> `./wa.db'
+    ~/wforensic$ ls -1
+    CHANGELOG
+    LICENSE
+    README
+    **msgstore.db**
+    tools
+    **wa.db**
+    wforensic
+    ~/wforensic$
 
 ## Running DJango
 
