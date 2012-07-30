@@ -19,8 +19,8 @@ Resolving deltas: 100% (11/11), done.
 
 ~$ cd wforensic/
 ~/wforensic$ cp -v /tmp/*.db .
-`/tmp/msgstore.db' -> `./msgstore.db'
-`/tmp/wa.db' -> `./wa.db'
+'/tmp/msgstore.db' -> `./msgstore.db'
+'/tmp/wa.db' -> `./wa.db'
 ~/wforensic$ ls -1
 CHANGELOG
 LICENSE
@@ -45,8 +45,8 @@ Quit the server with CONTROL-C.
 
 ## Decrypting all msgstore encrypted files
 
-$ python decrypt.py -d WhatsApp/Databases/ ./plain/
-
+ $ python decrypt.py -d WhatsApp/Databases/ ./plain/
+ 
     #######################################
     #      WhatsApp Forensic Tool  0.3    #
     #-------------------------------------#
@@ -55,34 +55,34 @@ $ python decrypt.py -d WhatsApp/Databases/ ./plain/
     # https://github.com/sch3m4/wforensic #
     #######################################
     
-[i] Setting AES key....... OK
-
-[+] Decrypting msgstore-2012-06-29.1.db.crypt (msgstore-2012-06-29.1.db) -> 1282064 Bytes 
-	+ 4765 Messages from 23 contacts 
+ [i] Setting AES key....... OK
+ 
+ [+] Decrypting msgstore-2012-06-29.1.db.crypt (msgstore-2012-06-29.1.db) -> 1282064 Bytes 
+  	 + 4765 Messages from 23 contacts 
+ 	
+ [+] Decrypting msgstore.db.crypt (msgstore.db) -> 1311760 Bytes 
+ 	 + 4922 Messages from 25 contacts 
+ 	
+ [+] Decrypting msgstore-2012-06-28.1.db.crypt (msgstore-2012-06-28.1.db) -> 1258512 Bytes 
+	 + 4673 Messages from 23 contacts 
+ 
+ [+] Decrypting msgstore-2012-06-24.1.db.crypt (msgstore-2012-06-24.1.db) -> 1243152 Bytes 
+	 + 4618 Messages from 23 contacts 
+ 	
+ [+] Decrypting msgstore-2012-06-25.1.db.crypt (msgstore-2012-06-25.1.db) -> 1246224 Bytes 
+	 + 4631 Messages from 23 contacts 
+ 	
+ [+] Decrypting msgstore-2012-06-26.1.db.crypt (msgstore-2012-06-26.1.db) -> 1249296 Bytes 
+	 + 4633 Messages from 23 contacts 
 	
-[+] Decrypting msgstore.db.crypt (msgstore.db) -> 1311760 Bytes 
-	+ 4922 Messages from 25 contacts 
-	
-[+] Decrypting msgstore-2012-06-28.1.db.crypt (msgstore-2012-06-28.1.db) -> 1258512 Bytes 
-	+ 4673 Messages from 23 contacts 
-	
-[+] Decrypting msgstore-2012-06-24.1.db.crypt (msgstore-2012-06-24.1.db) -> 1243152 Bytes 
-	+ 4618 Messages from 23 contacts 
-	
-[+] Decrypting msgstore-2012-06-25.1.db.crypt (msgstore-2012-06-25.1.db) -> 1246224 Bytes 
-	+ 4631 Messages from 23 contacts 
-	
-[+] Decrypting msgstore-2012-06-26.1.db.crypt (msgstore-2012-06-26.1.db) -> 1249296 Bytes 
-	+ 4633 Messages from 23 contacts 
-	
-[+] Decrypting msgstore-2012-06-30.1.db.crypt (msgstore-2012-06-30.1.db) -> 1289232 Bytes 
-	+ 4807 Messages from 24 contacts 
-	
-[+] Decrypting msgstore-2012-07-01.1.db.crypt (msgstore-2012-07-01.1.db) -> 1311760 Bytes 
+  [+] Decrypting msgstore-2012-06-30.1.db.crypt (msgstore-2012-06-30.1.db) -> 1289232 Bytes 
+	 + 4807 Messages from 24 contacts 
+ 	
+ [+] Decrypting msgstore-2012-07-01.1.db.crypt (msgstore-2012-07-01.1.db) -> 1311760 Bytes 
 	+ 4919 Messages from 25 contacts 
-
-[+] Done!
-$
+  
+ [+] Done!
+ $
 
 ## Decrypting a msgstore encrypted file
 
