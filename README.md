@@ -7,12 +7,19 @@ User-friendly DJango project to data interpretation and chart of messages activi
 ## Getting the source
 
 ~$ git clone git://github.com/sch3m4/wforensic.git
+
 Cloning into 'wforensic'...
+
 remote: Counting objects: 136, done.
+
 remote: Compressing objects: 100% (117/117), done.
+
 remote: Total 136 (delta 11), reused 135 (delta 10)
+
 Receiving objects: 100% (136/136), 364.66 KiB | 163 KiB/s, done.
+
 Resolving deltas: 100% (11/11), done.
+
 ~$
 
 ## Initializing the environment
