@@ -1,7 +1,9 @@
+
 from os.path import basename
 from os.path import getsize
+from django.db import connection
 from django.db.models import Q
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response,redirect
 from wforensic.settings import CONTACTS_PER_PAGE,CHATS_PER_PAGE,MESSAGES_PER_PAGE,DATABASES
 from pagination import pagination
 from django.template.context import RequestContext
@@ -65,6 +67,8 @@ def messages(request):
         
 def contacts(request):
     
+    if not 'wa_contacts' in connection.introspection.table_names():
+        return redirect('/')
     
     contact_list = get_contacts_list()
     contacts = pagination(request,contact_list,CONTACTS_PER_PAGE)

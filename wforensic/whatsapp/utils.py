@@ -123,7 +123,11 @@ def get_chat_list():
 
     _ret = []
     for item in _aux:
-        _name = WaContacts.objects.filter(jid = item).values('display_name','number')
+        try:
+            _name = WaContacts.objects.filter(jid = item).values('display_name','number')
+        except:
+            _name = {'display_name': item.split('@')[0],'number':item}
+
         _count = Messages.objects.using('msgstore').filter(key_remote_jid = item).count()
 
         _tmp = Messages.objects.using('msgstore').filter(key_remote_jid = item).values('data','media_wa_type','_id').annotate(models.Max('timestamp')).order_by('-timestamp__max')
@@ -140,7 +144,7 @@ def get_chat_list():
         try:
             _ret.append({'jid': item ,'display_name': _name[0]['display_name'],'number':_name[0]['number'],'count': _count, 'latest': _latest,'timestamp': _tstamp , 'img': set_media(_tmp[0]['media_wa_type'],_tmp[0]['data'],str(_tmp[0]['_id']))})
         except:
-            _ret.append({'jid': item ,'display_name': 'NOT IN CONTACTS','number': '+' + item.split('@')[0],'count': _count, 'latest': _latest,'timestamp': _tstamp , 'img': ''})
+            _ret.append({'jid': item ,'display_name': '+' + item.split('@')[0],'number': '+' + item.split('@')[0],'count': _count, 'latest': _latest,'timestamp': _tstamp , 'img': ''})
 
     return _ret
 
@@ -157,7 +161,7 @@ def get_chat_messages(jid = None):
             _peer = WaContacts.objects.filter(jid = item['key_remote_jid']).values('display_name')[0]
         except:
             _peer = {}
-            _peer['display_name'] = jid
+            _peer['display_name'] = '+' + item['key_remote_jid'].split('@')[0]
 
         item['display_name'] = _peer['display_name']
         item['timestamp'] = timestamp2utc(float(item['timestamp'])/1000)
@@ -173,7 +177,12 @@ def get_messages_media():
 
     _aux = []
     for item in _msgs:
-        _peer = WaContacts.objects.filter(jid = item['key_remote_jid']).values('display_name')[0]
+        try:
+            _peer = WaContacts.objects.filter(jid = item['key_remote_jid']).values('display_name')[0]
+        except:
+            _peer = {}
+            _peer['display_name'] = '+' + item['key_remote_jid'].split('@')[0]
+
         item['display_name'] = _peer['display_name']
         item['timestamp'] = timestamp2utc(float(item['timestamp'])/1000)
         item['received_timestamp'] = timestamp2utc(float(item['received_timestamp'])/1000)
@@ -188,7 +197,12 @@ def get_messages_gps():
 
     _aux = []
     for item in _msgs:
-        _peer = WaContacts.objects.filter(jid = item['key_remote_jid']).values('display_name')[0]
+        try:
+            _peer = WaContacts.objects.filter(jid = item['key_remote_jid']).values('display_name')[0]
+        except:
+            _peer = {}
+            _peer['display_name'] = '+' + item['key_remote_jid'].split('@')[0]
+
         item['display_name'] = _peer['display_name']
         item['timestamp'] = timestamp2utc(float(item['timestamp'])/1000)
         item['received_timestamp'] = timestamp2utc(float(item['received_timestamp'])/1000)
@@ -232,10 +246,7 @@ def get_activity_data(key=None):
             peer_name = WaContacts.objects.filter(jid = peer['key_remote_jid']).values('display_name')[0]['display_name']
         except:
             try:
-                if '-' in peer['key_remote_jid']:
-                    peer_name = str(peer['key_remote_jid']).split('-')[0]
-                else:
-                    peer_name = str(peer['key_remote_jid']).split('@')[0]
+                peer_name = str(peer['key_remote_jid']).split('@')[0]
             except:
                 peer_name = peer['key_remote_jid']
 
