@@ -1,12 +1,10 @@
-WForensic
-=========
+# WForensic
 
 User-friendly DJango project to data interpretation and chart of messages activity from WhatsApp records, and also provides tools for decrypting encrypted 'msgstored' files and to merge many SQLite3 database files into a single one
 
 
 
-[+] Getting the source
-======================
+## Getting the source
 
 ~$ git clone git://github.com/sch3m4/wforensic.git
 Cloning into 'wforensic'...
@@ -17,10 +15,8 @@ Receiving objects: 100% (136/136), 364.66 KiB | 163 KiB/s, done.
 Resolving deltas: 100% (11/11), done.
 ~$
 
+## Initializing the environment
 
-
-[+] Initializing the environment
-================================
 ~$ cd wforensic/
 ~/wforensic$ cp -v /tmp/*.db .
 `/tmp/msgstore.db' -> `./msgstore.db'
@@ -35,10 +31,8 @@ wa.db
 wforensic
 ~/wforensic$
 
+##  Using an gzipped unencrypted msgstore
 
-
-[+] Using an gzipped unencrypted msgstore
-=========================================
 ~$ gzip -d whatsapp-2012-05-03.1.log.gz
 ~$ mv whatsapp-2012-05-03.1.log wforensic/msgstore.db
 ~$ python wforensic/wforensic/manage.py runserver
@@ -49,10 +43,8 @@ Django version 1.4, using settings 'wforensic.settings'
 Development server is running at http://127.0.0.1:8000/
 Quit the server with CONTROL-C.
 
+## Decrypting all msgstore encrypted files
 
-
-[+] Decrypting all msgstore encrypted files
-=========================================
 $ python decrypt.py -d WhatsApp/Databases/ ./plain/
 
     #######################################
@@ -92,10 +84,8 @@ $ python decrypt.py -d WhatsApp/Databases/ ./plain/
 [+] Done!
 $
 
+## Decrypting a msgstore encrypted file
 
-
-[+] Decrypting a msgstore encrypted file
-===========================================
 $ python decrypt.py -f WhatsApp/Databases/msgstore.db.crypt plain/msgstore1.db
 
     #######################################
@@ -115,10 +105,8 @@ $ python decrypt.py -f WhatsApp/Databases/msgstore.db.crypt plain/msgstore1.db
 
 $
 
+## Running DJango
 
-
-[+] Running DJango
-==================
 ~/wforensic$ python wforensic/manage.py runserver
 Validating models...
 
