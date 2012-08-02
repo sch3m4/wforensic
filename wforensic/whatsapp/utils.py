@@ -100,10 +100,38 @@ def get_top_peers():
         ret.append(_aux)
     return ret
 
+def get_contacts_xml():
+	from django.db import connection
+
+	ret = []
+
+	# wa.db not available
+	if not 'wa_contacts' in connection.introspection.table_names():
+		_aux = Messages.objects.using('msgstore').values('key_remote_jid').exclude((Q(key_remote_jid = -1) |Q(key_remote_jid__icontains='-') | Q(key_remote_jid__startswith="Server"))).annotate(models.Count('key_remote_jid'))
+		for item in _aux:
+		    item['number'] = item['key_remote_jid'].split('@')[0][2:]
+		    item['display_name'] = 'Not in contacts'
+		    item['messages'] = item['key_remote_jid__count']
+		    item['whatsapp'] = "Yes"
+		    ret.append(item)
+	else:
+		_aux = WaContacts.objects.values('number','display_name','status','jid','is_whatsapp_user')
+		for item in _aux:
+		    if item['status'] is None:
+			continue
+		    item['messages'] = Messages.objects.using('msgstore').filter(key_remote_jid = item['jid']).count()
+		    if item['is_whatsapp_user']:
+			item['whatsapp'] = 'Yes'
+		    else:
+			item['whatsapp'] = 'No'
+		    ret.append(item)
+
+	return ret;
+
 def get_contacts_list():
 
     try:
-        _list = WaContacts.objects.exclude(number__isnull = True).values('jid','number','display_name','status','is_whatsapp_user').order_by('display_name')
+        _list = WaContacts.objects.exclude(Q(number__isnull = True) | Q(status__isnull = True)).values('jid','number','display_name','status','is_whatsapp_user').order_by('display_name')
 	_non = len(_list)  # to raise the exception (if wa_contacts table does not exists, the line above does not raise any exception, DJango bug? )
     except:
         _list = Messages.objects.using('msgstore').exclude( Q(key_remote_jid = -1) | Q(key_remote_jid__startswith="Server") | Q( key_remote_jid__icontains = '-' ) ).values('key_remote_jid').distinct()

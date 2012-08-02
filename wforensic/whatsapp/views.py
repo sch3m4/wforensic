@@ -1,14 +1,15 @@
 
 from os.path import basename
 from os.path import getsize
-from django.db import connection
 from django.db.models import Q
-from django.shortcuts import render_to_response,redirect
+from django.shortcuts import render_to_response
+from django.template.loader import render_to_string
 from wforensic.settings import CONTACTS_PER_PAGE,CHATS_PER_PAGE,MESSAGES_PER_PAGE,DATABASES
 from pagination import pagination
 from django.template.context import RequestContext
+from django.http import HttpResponse
 from models import WaContacts,Messages
-from utils import get_latest_peers,get_top_peers,get_contacts_list,get_chat_list,get_chat_messages,get_messages_media,get_messages_gps,get_md5_file,get_sha1_file,get_activity_data
+from utils import get_latest_peers,get_top_peers,get_contacts_list,get_chat_list,get_chat_messages,get_messages_media,get_messages_gps,get_md5_file,get_sha1_file,get_activity_data,get_contacts_xml
 
 def index(request):
     
@@ -48,8 +49,7 @@ def index(request):
     return render_to_response('whatsapp/index.html',dic,context_instance=RequestContext(request))
 
 def chatlist(request):
-    
-    
+        
     chats = get_chat_list()
     chat_list = pagination(request,chats,CHATS_PER_PAGE)
     
@@ -58,12 +58,22 @@ def chatlist(request):
 
 def messages(request):
     
-    
     msgs = get_chat_messages()
     msgs_list = pagination(request,msgs,MESSAGES_PER_PAGE)
     
     dic = {'chatmessages': msgs_list,'PAG_TITLE': 'Messages List' }
     return render_to_response('whatsapp/chat.html',dic,context_instance=RequestContext(request))
+
+def contacts_download(request):
+    from datetime import datetime
+
+    contacts = get_contacts_xml()
+    xml = render_to_string('whatsapp/contacts.xml', {'contacts': contacts , 'date': datetime.now().replace(microsecond=0)} )
+
+    response = HttpResponse(xml , mimetype='application/force-download')
+    response['Content-Disposition'] = 'attachment; filename=contacts.xml'
+
+    return response
         
 def contacts(request):
     
@@ -85,8 +95,7 @@ def contacts(request):
     return render_to_response('whatsapp/contacts.html',dic,context_instance=RequestContext(request))
 
 def single_chat(request,key):
-    
-    
+     
     msgs = get_chat_messages(key)
     msgs_list = pagination(request,msgs,MESSAGES_PER_PAGE)
     

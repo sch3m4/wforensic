@@ -1,6 +1,6 @@
 # Django settings for wforensic project.
 import os
-from os.path import dirname
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -21,11 +21,11 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': dirname(SITE_ROOT) + '/databases/wa.db',
+        'NAME': os.path.dirname(SITE_ROOT) + '/databases/wa.db',
     },
     'msgstore': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': dirname(SITE_ROOT) + '/databases/msgstore.db',
+        'NAME': os.path.dirname(SITE_ROOT) + '/databases/msgstore.db',
     }
 }
 
