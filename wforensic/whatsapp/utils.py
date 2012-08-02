@@ -54,7 +54,7 @@ def get_sha1_file(path):
     return md5.hexdigest()
 
 def get_latest_peers():
-    peers = [c['key_remote_jid'] for c in Messages.objects.using('msgstore').values('key_remote_jid').exclude(Q(key_remote_jid=-1)).annotate(models.Max('timestamp')).order_by('-timestamp__max')[:LATEST_PEERS]]
+    peers = [c['key_remote_jid'] for c in Messages.objects.using('msgstore').values('key_remote_jid').exclude(Q(key_remote_jid=-1) | Q( key_remote_jid__icontains='-') | Q(key_remote_jid__startswith = 'Server') ).annotate(models.Max('timestamp')).order_by('-timestamp__max')[:LATEST_PEERS]]
     ret = []
 
     for peer in peers:
@@ -64,7 +64,7 @@ def get_latest_peers():
             peer_data = WaContacts.objects.filter(jid=peer).values('display_name')[0]
         except:
             peer_data = {}
-            peer_data['display_name'] = peer
+            peer_data['display_name'] = peer.split('@')[0][2:]
 
         display_name = peer_data['display_name']
 
@@ -82,7 +82,7 @@ def get_latest_peers():
     return ret
 
 def get_top_peers():
-    _tmp = Messages.objects.using('msgstore').values('key_remote_jid').exclude((Q(key_remote_jid = -1) | Q(key_remote_jid__startswith="Server"))).annotate(models.Count('key_remote_jid')).order_by('-key_remote_jid__count')[:TOP_PEERS]
+    _tmp = Messages.objects.using('msgstore').values('key_remote_jid').exclude((Q(key_remote_jid = -1) |Q(key_remote_jid__icontains='-') | Q(key_remote_jid__startswith="Server"))).annotate(models.Count('key_remote_jid')).order_by('-key_remote_jid__count')[:TOP_PEERS]
     ret = []
     for item in _tmp:
 
@@ -90,9 +90,9 @@ def get_top_peers():
             _aux = WaContacts.objects.filter(jid = item['key_remote_jid']).values('number','display_name','status','jid')[0]
         except:
             _aux = {}
-            _aux['number'] = item['key_remote_jid']
+            _aux['number'] = item['key_remote_jid'].split('@')[0][2:]
             _aux['display_name'] = "Not in contacts"
-            _aux['status'] = "Not in contacts"
+            _aux['status'] = "N/A"
             _aux['jid'] = item['key_remote_jid']
 
 
@@ -104,11 +104,20 @@ def get_contacts_list():
 
     try:
         _list = WaContacts.objects.exclude(number__isnull = True).values('jid','number','display_name','status','is_whatsapp_user').order_by('display_name')
+	_non = len(_list)  # to raise the exception (if wa_contacts table does not exists, the line above does not raise any exception, DJango bug? )
     except:
-        _list = Messages.objects.using('msgstore').values('key_remote_jid').distinct()
+        _list = Messages.objects.using('msgstore').exclude( Q(key_remote_jid = -1) | Q(key_remote_jid__startswith="Server") | Q( key_remote_jid__icontains = '-' ) ).values('key_remote_jid').distinct()
+	_non = 0
 
     _ret = []
     for item in _list:
+        if not _non:
+            item['is_whatsapp_user'] = 1
+            item['display_name'] = 'Not in contacts'
+            item['status'] = 'N/A'
+            item['number'] = item['key_remote_jid'].split('@')[0][2:]
+            item['jid'] = item['key_remote_jid']
+
         try:
             item['messages'] = Messages.objects.using('msgstore').filter(key_remote_jid = item['jid']).count()
         except:

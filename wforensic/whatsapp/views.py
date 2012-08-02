@@ -67,9 +67,6 @@ def messages(request):
         
 def contacts(request):
     
-    if not 'wa_contacts' in connection.introspection.table_names():
-        return redirect('/')
-    
     contact_list = get_contacts_list()
     contacts = pagination(request,contact_list,CONTACTS_PER_PAGE)
     
@@ -77,7 +74,7 @@ def contacts(request):
         wusers = WaContacts.objects.filter(is_whatsapp_user = 1).count()
         nwusers = WaContacts.objects.filter(is_whatsapp_user = 0).count()
     except:
-        wusers = Messages.objects.using('msgstore').values('key_remote_jid').distinct().count()
+        wusers = Messages.objects.using('msgstore').exclude((Q(key_remote_jid = -1) | Q(key_remote_jid__startswith="Server"))).values('key_remote_jid').distinct().count()
         nwusers = 0
 
     dic = {'contactslist': contacts,
