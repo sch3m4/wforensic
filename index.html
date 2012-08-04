@@ -1,0 +1,290 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>WhatsApp Forensic by sch3m4</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>WhatsApp Forensic</h1>
+        <p>User-friendly DJango project to data interpretation and chart of messages activity from WhatsApp records.</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/sch3m4/wforensic" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/sch3m4/wforensic/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/sch3m4/wforensic/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <p>This project also provides tools for decrypting msgstored files and to merge many msgstore database files into a single one</p>
+
+<h2>Spanish post @ Security By Default</h2>
+
+<p><a href="http://www.securitybydefault.com/2012/05/whatsapp-forensics.html">http://www.securitybydefault.com/2012/05/whatsapp-forensics.html</a></p>
+
+<p><strong>IMPORTANT:</strong> The path of msgstore.db and wa.db has been changed to the directory "databases/" inside the project root.</p>
+
+<h2>Features</h2>
+
+<p>Nowadays, this project provides the following features:</p>
+
+<ul>
+<li>Show latest contacted peers</li>
+<li>Show top contacted peers</li>
+<li>Activity chart of all contacted peers</li>
+<li>Chart showing messages sent and received</li>
+<li>Chart showing contacts with WhatsApp</li>
+<li>Display messages thumbnails images</li>
+<li>Display GPS coordinates in Google Maps</li>
+<li>Download media attachments</li>
+<li>Filter and show messages with media data</li>
+<li>Filter and show messages with GPS data</li>
+<li>Browse conversations</li>
+<li>Browse contacts</li>
+<li>Activity chart for each contact</li>
+<li>Download contacts information in XML format</li>
+<li>Decrypt msgstore.db.crypt files</li>
+<li>Merge many msgstore.db files into a single one</li>
+</ul><p>And growing, stay tuned!</p>
+
+<h2>Getting the source</h2>
+
+<pre><code>~$ git clone git://github.com/sch3m4/wforensic.git
+Cloning into 'wforensic'...
+remote: Counting objects: 288, done.
+remote: Compressing objects: 100% (222/222), done.
+remote: Total 288 (delta 82), reused 221 (delta 50)
+Receiving objects: 100% (288/288), 987.14 KiB | 229 KiB/s, done.
+Resolving deltas: 100% (82/82), done.
+~$
+</code></pre>
+
+<h2>Retrieving msgstore.db and wa.db files</h2>
+
+<p>Although there are many ways to get the needed files msgstore.db and wa.db (the last one is not really required), you can use the example application from PyADB project available here: <a href="https://github.com/sch3m4/pyadb">https://github.com/sch3m4/pyadb</a>
+So once it is installed, you can continue as follows:</p>
+
+<pre><code>~/pyadb/example$ python whatsapp.py 
+    [+] Using PyADB version 0.1.0
+    [+] Verifying ADB path... OK
+    [+] ADB Version: 1.0.29
+
+    [+] Restarting ADB server...
+    [+] Detecting devices... OK
+        0: XXXXXXXXXXXX
+
+    [+] Using "XXXXXXXXXXXX" as target device
+    [+] Looking for 'su' binary:  /system/xbin/su
+    [+] Checking if 'su' binary can give root access:
+        - Yes
+
+    [+] Copying Whatsapp data folder
+        - Local destination [/home/sch3m4/pyadb/example]: 
+
+    [+] Creating remote tar file: /sdcard/whatsapp_JKsBgtryAa.tar
+        - Command: /system/xbin/su -c 'tar -c /data/data/com.whatsapp -f /sdcard/whatsapp_JKsBgtryAa.tar'
+
+    [+] Retrieving remote file: /sdcard/whatsapp_JKsBgtryAa.tar
+    [+] Removing remote file: /sdcard/whatsapp_JKsBgtryAa.tar
+
+    [+] Remote Whatsapp files from device memory are now locally accessible at "/home/sch3m4/pyadb/example/databases/whatsapp_JKsBgtryAa.tar"
+
+    [+] Looking for 'tar' binary... /system/xbin/tar
+
+    [+] Creating remote tar file: /sdcard/whatsapp_VFeCdqTSCg.tar
+        + Command: /system/xbin/tar -c /sdcard/WhatsApp -f /sdcard/whatsapp_VFeCdqTSCg.tar
+
+    [+] Remote tar file created: /sdcard/whatsapp_VFeCdqTSCg.tar
+        - Local destination [/home/sch3m4/pyadb/example]: 
+
+    [+] Retrieving remote file: /sdcard/whatsapp_VFeCdqTSCg.tar...
+
+    [+] WhatsApp SDcard folder is now available in tar file: /home/sch3m4/pyadb/example/whatsapp_VFeCdqTSCg.tar
+
+    ~/pyadb/example$
+</code></pre>
+
+<p><strong>IMPORTANT:</strong> This application example does not belongs to WForensic project, may be in the future?</p>
+
+<p>Once you have exported the needed files, you'll need to change the files &amp; folder owner and untar the files:</p>
+
+<pre><code>~/pyadb/example$ tar xf whatsapp_VFeCdqTSCg.tar
+~/pyadb/example$ sudo chown -R sch3m4:sch3m4 sdcard/
+~/pyadb/example$ sudo chown -R sch3m4:sch3m4 databases/
+~/pyadb/example$ tar xf databases/whatsapp_JKsBgtryAa.tar
+~/pyadb/example$ sudo chown -R sch3m4:sch3m4 data/
+~/pyadb/example$ sudo chmod -R 755 sdcard/ data/
+</code></pre>
+
+<p>And you'll get the msgstore &amp; wa.db files at:</p>
+
+<pre><code>~/pyadb/example$ ls -l sdcard/WhatsApp/Databases/ data/data/com.whatsapp/databases/
+data/data/com.whatsapp/databases/:
+total 1732
+-rwxr-xr-x 1 sch3m4 sch3m4 1740800 jul 30 13:32 msgstore.db
+-rwxr-xr-x 1 sch3m4 sch3m4   26624 jul 30 13:32 wa.db
+
+sdcard/WhatsApp/Databases/:
+total 13060
+-rwxr-xr-x 1 sch3m4 sch3m4 1575952 jul 22 04:00 msgstore-2012-07-23.1.db.crypt
+-rwxr-xr-x 1 sch3m4 sch3m4 1613840 jul 24 04:00 msgstore-2012-07-24.1.db.crypt
+-rwxr-xr-x 1 sch3m4 sch3m4 1640464 jul 24 17:22 msgstore-2012-07-25.1.db.crypt
+-rwxr-xr-x 1 sch3m4 sch3m4 1653776 jul 25 04:00 msgstore-2012-07-27.1.db.crypt
+-rwxr-xr-x 1 sch3m4 sch3m4 1680400 jul 27 04:00 msgstore-2012-07-28.1.db.crypt
+-rwxr-xr-x 1 sch3m4 sch3m4 1697808 jul 28 04:00 msgstore-2012-07-29.1.db.crypt
+-rwxr-xr-x 1 sch3m4 sch3m4 1723408 jul 29 04:00 msgstore-2012-07-30.1.db.crypt
+-rwxr-xr-x 1 sch3m4 sch3m4 1736720 jul 30 04:00 msgstore.db.crypt
+</code></pre>
+
+<h2>Decrypting many msgstore files</h2>
+
+<p>Following the above instructions, the next step is to decrypt all the *.crypt files. To do that, follow the next steps:</p>
+
+<pre><code>$ cd ~/wforensic/tools/
+~/wforensic/tools$ python decrypt.py -d ~/pyadb/example/sdcard/WhatsApp/Databases/ ./plain/
+
+    #######################################
+    #      WhatsApp Forensic Tool  0.3    #
+    #-------------------------------------#
+    #  Decrypts encrypted msgstore files  #
+    #   This tool is part of WForensic    #
+    # https://github.com/sch3m4/wforensic #
+    #######################################
+
+[i] Setting AES key....... OK
+
+[+] Decrypting msgstore-2012-07-25.1.db.crypt (msgstore-2012-07-25.1.db) -&gt; 1640464 Bytes 
+    + 6246 Messages from 32 contacts
+
+[+] Decrypting msgstore-2012-07-28.1.db.crypt (msgstore-2012-07-28.1.db) -&gt; 1680400 Bytes 
+    + 6435 Messages from 32 contacts
+
+[+] Decrypting msgstore-2012-07-23.1.db.crypt (msgstore-2012-07-23.1.db) -&gt; 1575952 Bytes 
+    + 6042 Messages from 30 contacts
+
+[+] Decrypting msgstore-2012-07-24.1.db.crypt (msgstore-2012-07-24.1.db) -&gt; 1613840 Bytes 
+    + 6218 Messages from 31 contacts
+
+[+] Decrypting msgstore.db.crypt (msgstore.db) -&gt; 1736720 Bytes 
+    + 6681 Messages from 33 contacts
+
+[+] Decrypting msgstore-2012-07-27.1.db.crypt (msgstore-2012-07-27.1.db) -&gt; 1653776 Bytes 
+    + 6289 Messages from 32 contacts
+
+[+] Decrypting msgstore-2012-07-29.1.db.crypt (msgstore-2012-07-29.1.db) -&gt; 1697808 Bytes 
+    + 6516 Messages from 32 contacts
+
+[+] Decrypting msgstore-2012-07-30.1.db.crypt (msgstore-2012-07-30.1.db) -&gt; 1723408 Bytes 
+    + 6607 Messages from 32 contacts
+
+[+] Done!
+
+~/wforensic/tools$
+</code></pre>
+
+<h2>Merging all msgstore files into a single one</h2>
+
+<p>At this step, you'll get many msgstore files, so to merge them you can use another tool located at wforensic/tools called 'merge.py':</p>
+
+<pre><code>~/wforensic/tools$ cp ~/pyadb/example/data/data/com.whatsapp/databases/msgstore.db plain/msgstore1.db
+~/wforensic/tools$ python merge.py plain/ msgstore* ./msgstore.db
+
+    #######################################
+    #  WhatsApp Msgstore Merge Tool 0.2b  #
+    #-------------------------------------#
+    # Merges WhatsApp message files into  #
+    #           a single one.             #
+    #   This tool is part of WForensic    #
+    # https://github.com/sch3m4/wforensic #
+    #######################################
+
+[i] Origin: plain/msgstore*
+[i] Output file: ./msgstore.db
+
++ Merging: msgstore.db 
++ Merging: msgstore-2012-07-29.1.db  (Merged 0 contacts and 0 messages) 
++ Merging: msgstore-2012-07-28.1.db  (Merged 0 contacts and 0 messages) 
++ Merging: msgstore-2012-07-24.1.db  (Merged 0 contacts and 0 messages) 
++ Merging: msgstore-2012-07-23.1.db  (Merged 0 contacts and 0 messages) 
++ Merging: msgstore-2012-07-27.1.db  (Merged 0 contacts and 0 messages) 
++ Merging: msgstore1.db  (Merged 0 contacts and 11 messages) 
++ Merging: msgstore-2012-07-30.1.db  (Merged 0 contacts and 0 messages) 
++ Merging: msgstore-2012-07-25.1.db  (Merged 0 contacts and 0 messages)
+
+~/wforensic/tools$
+</code></pre>
+
+<p>At this point, the final msgstore.db file is located at "~/wforensic/tools/msgstore.db"</p>
+
+<h2>Environment schema</h2>
+
+<p>The last point, is to move/copy/link the needed files (remember, wa.db is not really needed but useful) to the correct path:</p>
+
+<pre><code>~/wforensic/tools$ cp msgstore.db ../databases
+~/wforensic/tools$ cp ~/pyadb/example/data/data/com.whatsapp/databases/wa.db ../databases/
+~/wforensic$ cd .. &amp;&amp; ls -1
+CHANGELOG
+databases
+LICENSE
+README
+tools
+wforensic
+~/wforensic$ ls -1 databases/
+msgstore.db
+wa.db
+~/wforensic$
+</code></pre>
+
+<h2>Running DJango</h2>
+
+<pre><code>~/wforensic$ python wforensic/manage.py runserver
+Validating models...
+
+0 errors found
+Django version 1.4, using settings 'wforensic.settings'
+Development server is running at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+</code></pre>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/sch3m4">sch3m4</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-33740030-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
