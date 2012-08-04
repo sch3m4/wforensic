@@ -5,6 +5,28 @@ http://www.securitybydefault.com/2012/05/whatsapp-forensics.html
 
 **IMPORTANT:** The path of msgstore.db and wa.db has been changed to the directory "databases/" inside the project root.
 
+## Features
+
+Nowadays, this project provides the following features:
+
+ * Show latest contacted peers
+ * Show top contacted peers
+ * Activity chart of all contacted peers
+ * Chart showing messages sent and received
+ * Chart showing contacts with WhatsApp
+ * Display messages thumbnails images
+ * Display GPS coordinates in Google Maps
+ * Download media attachments
+ * Filter and show messages with media data
+ * Filter and show messages with GPS data
+ * Browse conversations
+ * Browse contacts
+ * Activity chart for each contact
+ * Download contacts information in XML format
+ * Decrypt msgstore.db.crypt files
+ * Merge many msgstore.db files into a single one
+
+And growing, stay tuned!
 
 ## Getting the source
 
