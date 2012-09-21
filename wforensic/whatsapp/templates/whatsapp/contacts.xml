@@ -1,0 +1,10 @@
+<!--
+ This file was automatically generated on {{ date }} by WhatsApp Forensic Tool
+ http://sch3m4.github.com/wforensic
+-->
+
+<contacts>
+     {% for item in contacts %}
+     <contact name="{{ item.display_name }}" number="{{ item.number }}" status="{{ item.status }}" whatsapp="{{ item.whatsapp }}" messages="{{ item.messages }}" />
+     {% endfor %}
+</contacts>

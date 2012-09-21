@@ -1,4 +1,4 @@
-{% load gettemplateheader_tag %}
+{% load gettemplateheader %}
 <html>
 <head>
 	<script type="text/javascript" src="{{ STATIC_URL }}css/lib/jquery-1.7.1.min.js" ></script>
@@ -35,7 +35,23 @@
 <h2><img src="{{STATIC_URL}}img/logo.png" width="104px" height="142px"/></br>WhatsApp Forensic</h2>
 
 {% gettemplateheader %}
-<a href="{% url home %}">Home</a> | <a href="{% url contacts %}">Contacts</a> ({{theader.contacts}}) | <a href="{% url chats %}">Chat list</a> ({{theader.chats}}) | <a href="{% url messages %}">Messages</a> ({{theader.messages}}) | <a href="{% url messages_media %}">Media</a> ({{theader.media}}) |<a href="{% url messages_gps %}">GPS</a> ({{theader.gps}})
+<a href="{% url home %}">Home</a> |
+{% if theader.contacts > 0 %}
+<a href="{% url contacts %}">Contacts</a> ({{theader.contacts}}) |
+{% endif %}
+{% if theader.chats > 0 %}
+<a href="{% url chats %}">Chat list</a> ({{theader.chats}}) |
+{% endif %}
+{% if theader.messages > 0 %}
+<a href="{% url messages %}">Messages</a> ({{theader.messages}}) |
+{% endif %}
+{% if theader.media > 0 %}
+<a href="{% url messages_media %}">Media</a> ({{theader.media}}) |
+{% endif %}
+{% if theader.gps > 0 %}
+<a href="{% url messages_gps %}">GPS</a> ({{theader.gps}}) |
+{% endif %}
+<a href="{% url search %}">Search</a>
 
 <div class="ym-wrapper">
 	<div class="ym-wbox">
@@ -44,14 +60,16 @@
 </div>
 
 <p></br></p>
+<hr>
 <div align="center">
 	<div class="footer">
 		<em>
-			<a href="https://github.com/sch3m4/wforensic" target="_blank">WhatsApp Forensic v0.1b</a><br>
+			<a href="http://sch3m4.github.com/wforensic" target="_blank">WhatsApp Forensic v0.2</a><br>
 			Written by <a href="mailto:chema@safetybits.net">Chema Garc&iacute;a</a> (aka <a href="https://twitter.com/sch3m4" target="_blank">sch3m4</a>) / <a href="http://safetybits.net" target="_blank">SafetyBits</a>
 		</em><br/><br/>
 		<img src="{{ STATIC_URL }}img/powered/django.png">
 		<img src="{{ STATIC_URL }}img/powered/sqlite.png">
+		<img src="{{ STATIC_URL }}img/powered/firefox.png">
 		<p></p>
 	</div>
 </div>

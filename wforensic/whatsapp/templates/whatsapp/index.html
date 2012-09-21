@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 
+{% load gotcontactsdb %}
+
 {% block head %}
-{% include "havewhatsappchart.html" %}
+{% gotcontactsdb %}
+{% ifequal gotcontacts 1 %}
+    {% include "havewhatsappchart.html" %}
+{% endifequal %}
 {% include "messagesfrom.html" %}
 {% include "activitychart.html" %}
 {% endblock %}
@@ -11,14 +16,26 @@
 <script type="text/javascript" src="{{STATIC_URL}}js/highcharts.js"></script>
 <script type="text/javascript" src="{{STATIC_URL}}js/modules/exporting.js"></script>
 
-<div class="ym-g50">
-	<table class="bordertable" style="background: #e8ff99;" >
+<div class="ym-g80">
+        <table>
+            <tr border="0">
+                {% gotcontactsdb %}
+                {% ifequal gotcontacts 1 %}
+                    <td><div id="whatsappusers" style="width: 480px; height: 200px; margin: 0 auto"></div></td>
+                {% endifequal %}
+                <td><div id="messagesfrom" style="width: 480px; height: 200px; margin: 0 auto"></div></td>
+            </tr>
+        </table>
+    <div id="wa_activity" style="margin: 0 auto"></div>
+
+	<table class="bordertable" style="background: #e8ff99; ">
 		<thead>
 			<tr>
 				<th> Filename </th>
 				<th> Size (Bytes) </th>
 				<th> MD5 </th>
 				<th> SHA1 </th>
+				<th> Writeable? </th>
 			</tr>
 		</thead>
 		<tbody>
@@ -27,30 +44,25 @@
 				<td>{{msgsize}}</td>
 				<td>{{msgmd5}}</td>
 				<td>{{msgsha1}}</td>
+				{% autoescape off %}
+				<td>{{msgperm}}</td>
+				{% endautoescape %}
 			</tr>
 			<tr>
 				<td>{{wafile}}</td>
 				<td>{{wasize}}</td>
 				<td>{{wamd5}}</td>
 				<td>{{washa1}}</td>
+				{% autoescape off %}
+				<td>{{waperm}}</td>
+				{% endautoescape %}
 			</tr>
 		</tbody>
 	</table>
 </div>
 <br/>
 
-<div class="ym-g60">
-	<div id="wa_activity" style="margin: 0 auto"></div>
-	<table>
-		<tr>
-			<td><div id="whatsappusers" style="width: 500px; height: 200px; margin: 0 auto"></div></td>
-			<td><div id="messagesfrom" style="width: 500px; height: 200px; margin: 0 auto"></div></td>
-		</tr>
-	</table>
-</div>
-
-
-<div class="ym-g60">
+<div class="ym-g80">
 	<div style="background: red;">
 	<h6><span style="color: white;">General Activity</span></h6>
 	</div>
@@ -58,16 +70,30 @@
 	
 		<form class="ym-form">
 			<h6><i>Latest Contacted</i></h6>
-			
-			{% for peer in latest %}
-			<div class="ym-gbox" align="left" style="background: #e8ff99;">
-				<ul>
-					<li>
-						<b>{{peer.timestamp}}</b> / <a href="{% url single_chat key=peer.key_remote_jid %}">{{peer.display_name}}</a> : {% if peer.img|length > 0 %}<img src="{{peer.img}}"/>{% else %}{{peer.data}}{% endif %}
-					</li>
-				</ul>
-			</div>
-			{% endfor %}
+                            <div class="ym-gbox" align="left">
+                                <table class="bordertable" style="background: #e8ff99;">
+                                    <thead align="center">
+                                        <tr>
+                                            <th> Date </th>
+                                            <th> Display Name </th>
+                                            <th> Phone </th>
+                                            <th> Status </th>
+                                            <th> Message </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for peer in latest %}
+                                        <tr>
+                                            <td>{{peer.timestamp}}</td>
+                                            <td>{{peer.display_name}}</td>
+                                            <td><a href="{% url contact_profile key=peer.key_remote_jid %}">{{peer.number}}</a></td>
+                                            <td>{{peer.status}}</td>
+                                            <td>{% if peer.img|length > 0 %}<img src="{{peer.img}}"/>{% else %}{{peer.data}}{% endif %}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
 
 			<h6><i>Top Contacted</i></h6>
 			<div class="ym-gbox" align="left">
@@ -83,8 +109,8 @@
 					<tbody>
 						{%  for peer in toppeers %}
 						<tr>
-							<td>{{peer.number}}</td>
-							<td><a href="{% url single_chat key=peer.jid %}">{{peer.display_name}}</a></td>
+							<td><a href="{% url contact_profile key=peer.jid %}">{{peer.number}}</a></td>
+							<td>{{peer.display_name}}</td>
 							<td>{{peer.status}}</td>
 							<td>{{peer.msgs}}</td>
 						</tr>

@@ -1,14 +1,16 @@
 {% extends "base.html" %}
 
 {% block head %}
-{% ifequal contactslist.number 1 %} 
+{% ifequal contactslist.number 1 %}
 {% include "havewhatsappchart.html" %}
 {% endifequal %}
 {% endblock %}
 
 {% block body %}
 
-<div class="ym-g60">
+<a href="{% url download_contacts %}">Download as XML</a>
+</br>
+<div class="ym-g80">
 	<div class="ym-gbox">
 		<table class="bordertable" style="background: #e8ff99;">
 			<thead>
@@ -26,7 +28,7 @@
 					{% ifequal item.messages 0 %}
 						{{item.number}}
 					{% else %}
-						<a href="{% url single_chat key=item.jid %}">{{item.number}}</a>
+						<a href="{% url contact_profile key=item.jid %}">{{item.number}}</a>
 					{% endifequal %}
 					</td>
 					<td>{% ifequal item.is_whatsapp_user 1 %}<img src="{{STATIC_URL}}img/thumb.png" width="24px" height="24px" />{% endifequal %} {{item.display_name}}</td>
@@ -47,8 +49,6 @@
     {% if contactslist.has_next %}
         <a href="?page={{ contactslist.next_page_number }}">&gt;&gt;</a>
     {% endif %}
-
-</div>	
 
 </div>	
 

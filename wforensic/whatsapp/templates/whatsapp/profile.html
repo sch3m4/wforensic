@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block head %}
+    {% include "activitychart.html" %}
+{% endblock %}
+
+{% block body %}
+
+<script type="text/javascript" src="{{STATIC_URL}}js/highcharts.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}js/modules/exporting.js"></script>
+
+<div class="ym-g60">
+    <div id="wa_activity" style="margin: 0 auto"></div>
+</div>
+
+<div class="ym-g40">
+        <div style="background: red;">
+            <h6><span style="color: white;">Contact Profile</span></h6>
+        </div>
+
+        <div class="ym-gbox">
+        <div class="ym-gbox" align="left">
+            <ul>
+                <li><b>Name:</b> {{ contact.name }}</li>
+                <li><b>Status:</b> {{ contact.status }}</li>
+                <li><b>Number:</b> {{ contact.number }}</li>
+                <li><b>Is WhatsApp user:</b>
+                {% ifequal contact.whatsapp 1 %}
+                    Yes
+                {% else %}
+                    No
+                {% endifequal %}
+                </li>
+                <li><b>Messages:</b> {{ contact.messages }}</li>
+                <li><b>First Seen:</b> {{ contact.first_seen }}</li>
+                <li><b>Last seen:</b> {{ contact.last_seen }}</li>
+                {% if contact.media_messages > 0 %}
+                    <li><b>Media messages:</b> {{ contact.media_messages }}</li>
+                {% endif %}
+                {% if contact.gps_messages > 0 %}
+                    <li><b>GPS Messages:</b> {{ contact.gps_messages }}</li>
+                {% endif %}
+            </ul>
+            </br>
+        </div>
+        <a href="{% url single_chat key=contact.jid %}">View conversation</a>
+        </div>
+</div>
+{% endblock %}

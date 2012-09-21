@@ -1,5 +1,22 @@
+WForensic (0.2)
+
+	* Updated attachments thumbnails display 
+	* Shows if the involved files are writable or not
+	* Messages sorted by received date
+	* Removed 'decrypt.py' tool and a new one created ('encryption.py') to decrypt and encrypt
+	* Index layout has been modified
+	* Added script to run the DJango server (run.sh)
+	* View contacts profile
+	* The files wa.db and msgstore.db must be now placed into "databases/" directory
+	* Added support to download the entire contact list in XML format
+	* Fixed Base64 decode issue
+	* Added "tools/merge.py" script to merge many msgstore.db files into a single one
+	* wa.db contacts database is no longer required
+
+	-- Chema Garcia <chema@safetybits.net> (XX/YY/2012)
+
 WForensic (0.1b)
 
 	* First release
 	
-	-- Chema Garcia <sch3m4@safetybits.net> (08/05/2012)
+	-- Chema Garcia <chema@safetybits.net> (08/05/2012)

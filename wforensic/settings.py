@@ -1,16 +1,22 @@
 # Django settings for wforensic project.
 import os
-from os.path import dirname
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 SITE_ROOT = os.path.realpath(os.path.dirname(__file__))
 
-CONTACTS_PER_PAGE = 15
-CHATS_PER_PAGE = 15
-MESSAGES_PER_PAGE = 20
-LATEST_PEERS = 10
-TOP_PEERS = 10
+# tool version
+VERSION = '0.2b'
+
+# YOU CAN EDIT THE BELOW SETTINGS
+##############################################################
+CONTACTS_PER_PAGE = 15  # number of contacts to show per page
+CHATS_PER_PAGE = 15     # number of chats to show per page
+MESSAGES_PER_PAGE = 20  # number of messages to show per page
+LATEST_PEERS = 10       # number of peers to show as latest
+TOP_PEERS = 10          # number of peers to show as top
+##############################################################
 
 ADMINS = (
      ('Chema Garcia', 'chema@safetybits.net'),
@@ -21,11 +27,11 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': dirname(SITE_ROOT) + '/wa.db',
+        'NAME': os.path.dirname(SITE_ROOT) + '/databases/wa.db',
     },
     'msgstore': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': dirname(SITE_ROOT) + '/msgstore.db',
+        'NAME': os.path.dirname(SITE_ROOT) + '/databases/msgstore.db',
     }
 }
 

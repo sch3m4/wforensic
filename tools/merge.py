@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 #
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !!!! THIS SCRIPT IS NOT WORKING DUE TO PRIMARY KEY AND UNIQUE VALUES MISTAKES !!!!
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#
-#
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Copyright (c) 2012, Chema Garcia
 # All rights reserved.
@@ -15,10 +10,10 @@
 #    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
 #    Neither the name of the SafetyBits nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
-# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 # WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 #
@@ -28,168 +23,132 @@
 #      http://safetybits.net
 #      http://twitter.com/sch3m4
 #
-# This tool is part of WhatsApp Forensic (https://github.com/sch3m4/wforensic)
+# This tool is part of WhatsApp Forensic / https://sch3m4.github.com/wforensic
 #
-# Version: 0.1
+# Version: 0.2b
 #
 
 try:
     import os
     import re
     import sys
+    import shutil
     import sqlite3
 except ImportError,e:
     print "[f] Required module missing. %s" % e.args[0]
     sys.exit(-1)
-    
-# method "iterdump" from sqlite3 currently fails (http://bugs.python.org/issue15109)
-# renamed "iterdump" from python-pysqlite2
-def dump_iterator(connection):
-    """
-    Returns an iterator to the dump of the database in an SQL text format.
-
-    Used to produce an SQL dump of the database.  Useful to save an in-memory
-    database for later restoration.  This function should not be called
-    directly but instead called from the Connection method, iterdump().
-    """
-
-    cu = connection.cursor()
-    yield('BEGIN TRANSACTION;')
-
-    # sqlite_master table contains the SQL CREATE statements for the database.
-    q = """
-        SELECT name, type, sql
-        FROM sqlite_master
-            WHERE sql NOT NULL AND
-            type == 'table'
-        """
-    schema_res = cu.execute(q)
-    for table_name, type, sql in schema_res.fetchall():
-        if table_name == 'sqlite_sequence':
-            yield('DELETE FROM sqlite_sequence;')
-        elif table_name == 'sqlite_stat1':
-            yield('ANALYZE sqlite_master;')
-        elif table_name.startswith('sqlite_'):
-            continue
-        # NOTE: Virtual table support not implemented
-        #elif sql.startswith('CREATE VIRTUAL TABLE'):
-        #    qtable = table_name.replace("'", "''")
-        #    yield("INSERT INTO sqlite_master(type,name,tbl_name,rootpage,sql)"\
-        #        "VALUES('table','%s','%s',0,'%s');" %
-        #        qtable,
-        #        qtable,
-        #        sql.replace("''"))
-        else:
-            yield('%s;' % sql)
-
-        # Build the insert statement for each row of the current table
-        res = cu.execute("PRAGMA table_info('%s')" % table_name)
-        column_names = [str(table_info[1]) for table_info in res.fetchall()]
-        q = "SELECT 'INSERT INTO \"%(tbl_name)s\" VALUES("
-        q += ",".join(["'||quote(" + col + ")||'" for col in column_names])
-        q += ")' FROM '%(tbl_name)s'"
-        query_res = cu.execute(q % {'tbl_name': table_name})
-        for row in query_res:
-            #yield("%s;" % row[0])
-            yield(row[0] + ';')
-
-    # Now when the type is 'index', 'trigger', or 'view'
-    q = """
-        SELECT name, type, sql
-        FROM sqlite_master
-            WHERE sql NOT NULL AND
-            type IN ('index', 'trigger', 'view')
-        """
-    schema_res = cu.execute(q)
-    for name, type, sql in schema_res.fetchall():
-        yield('%s;' % sql)
 
 def merge(path,pattern,dest):
-    
-    output = sqlite3.connect(dest)
-    
-    len1 = 0 # current file
-    len2 = 0 # output file
-    backwards = 0
+    """
+    Reads from files in 'path' and dumps its contents to 'dest'
+    """
+
+    first = 0
+    output = None
+    mtableid = 0
 
     for filename in os.listdir(path):
-        if not os.path.isfile(path + filename) or not re.match(pattern,filename):
+        if not os.path.isfile(path + filename) or not re.match(pattern, filename):
             continue
-        
-        len1 = 0
-        backwards = 0
-        
-        print "+ Merging: %s -> " % filename ,
+
+        print "\n+ Merging: %s" % filename ,
         sys.stdout.flush()
-        
+
+        if first == 0:
+            shutil.copy2 (path + filename, dest)
+            first += 1
+            continue
+        elif output is None:
+            output = sqlite3.connect(dest)
+            wcursor = output.cursor()
+
+        ccontacts = 0
+        cmessages = 0
+
+        # get all remote_key_jid values from messages table
         orig = sqlite3.connect(path + filename)
-        
-        for line in dump_iterator(orig):
-            try:
-                lenline = len(str(line))
+        rcursor = orig.cursor()
 
-                if str(line)[:6] == "CREATE":
-                    line = str(line).replace("UNIQUE","")
-                    line = str(line).replace("PRIMARY KEY AUTOINCREMENT","")
+        if mtableid == 0:
+            # get biggest message_table_id value (what is this column for? :-/ )
+            wcursor.execute("SELECT MAX(message_table_id) FROM chat_list")
+            try:
+                mtableid = wcursor.fetchone()[0]
             except:
-                lenline = 0
-                pass
-            
-            len1 += lenline
-            len2 += lenline
-            
-            try:
-                output.execute(line)
-            except sqlite3.OperationalError, msg:
-                pass
-            
-            # print progress
-            for i in range(backwards):
-                sys.stdout.write("\b")
-                
-            backwards = len(str(len1)) + len(str(len2)) + len("R: W:  / Bytes") + 1
-            
-            print "R: %d / W: %d Bytes" % (len1,len2) ,
-            sys.stdout.flush()
-            
-        output.commit()
-        orig.close()
-        
-        print ""
+                print "\n\t- Error getting MAX(message_table_id), skipping file..."
+                continue
 
-    output.close()
+        # get all key_remote_jid from the current file
+        rcursor.execute("SELECT DISTINCT key_remote_jid FROM chat_list")
+
+        # if each item from the above query does not exists, insert it
+        for krjid in rcursor:
+            wcursor.execute("SELECT key_remote_jid FROM chat_list WHERE key_remote_jid=?",krjid)
+            try:
+                if len(wcursor.fetchone()[0]) > 0:
+                    continue
+            except:
+                try:
+                    mtableid += 1  # increments message_table_id
+                    data = (krjid[0], mtableid)
+                    wcursor.execute("INSERT INTO chat_list (key_remote_jid,message_table_id) VALUES (?,?)", data)
+                    ccontacts += 1
+                except:
+                    pass
+
+        # get all messages from messages table
+        rcursor.execute("SELECT key_remote_jid,key_from_me,key_id,status,needs_push,data,timestamp,media_url,media_mime_type,media_wa_type,media_size,media_name,latitude,longitude,thumb_image,remote_resource,received_timestamp,send_timestamp,receipt_server_timestamp,receipt_device_timestamp,raw_data FROM messages")
+        messages = rcursor.fetchall()
+        for msg in messages:
+            try:
+                wcursor.execute("INSERT INTO messages(key_remote_jid,key_from_me,key_id,status,needs_push,data,timestamp,media_url,media_mime_type,media_wa_type,media_size,media_name,latitude,longitude,thumb_image,remote_resource,received_timestamp,send_timestamp,receipt_server_timestamp,receipt_device_timestamp,raw_data) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",msg)
+                cmessages += 1
+            except:
+                pass
+
+        output.commit()
+
+        print " (Merged %d contacts and %d messages)" % (ccontacts,cmessages) ,
+        sys.stdout.flush()
+
+        orig.close()
+
+    if output is not None:
+        output.close()
     return
 
 if __name__ == "__main__":
     print """
     #######################################
-    #   SQLite3 Database Merge Tool 0.1   #
+    #  WhatsApp Msgstore Merge Tool 0.2b  #
     #-------------------------------------#
-    # Merges SQLite3 database files into  #
+    # Merges WhatsApp message files into  #
     #           a single one.             #
     #   This tool is part of WForensic    #
-    # https://github.com/sch3m4/wforensic #
-    #######################################\n
+    # https://sch3m4.github.com/wforensic #
+    #######################################
     """
-    
+
     if len(sys.argv) != 4:
         print "Usage: %s /path/to/databases/to/be/merged/ files_pattern /path/to/output\n" % sys.argv[0]
         sys.exit(-1)
-    
+
     if sys.argv[1][-1:] != '/':
         sys.argv[1] += '/'
-        
-    if not os.path.isdir(os.path.dirname(sys.argv[3])):
+
+    dir = os.path.dirname(sys.argv[3])
+
+    if len(dir) > 0 and not os.path.isdir(dir):
         print "[e] Error: Directory \"%s\" does not exists\n" % sys.argv[3]
         sys.exit(-2)
-        
+
     if not os.path.isdir(sys.argv[1]):
         print "[e] Error: \"%s\" is not a directory\n" % sys.argv[1]
         sys.exit(-3)
-        
+
     print "[i] Origin: %s%s" % ( sys.argv[1] , sys.argv[2] )
-    print "[i] Output file: %s\n" % sys.argv[3]
-    
+    print "[i] Output file: %s" % sys.argv[3]
+
     merge(sys.argv[1],sys.argv[2], sys.argv[3])
-    print ""
+    print "\n"
     sys.exit(0)

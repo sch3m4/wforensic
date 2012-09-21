@@ -18,8 +18,13 @@
 				</div>
 				<div class="ym-gl" align="left">[<u>{{item.timestamp}}</u>]
 				<h6>
-					<img src="{{STATIC_URL}}img/thumb.png" width="24px" height="24px" />
-						<a href="{% url single_chat key=item.jid %}">{{item.display_name}}</a>
+                                        <a href="{% url contact_profile key=item.jid %}">
+                                        {% if item.display_name|length_is:"0" %}
+                                        	{{ item.jid }}
+                                        {% else %}
+                                        	{{item.display_name}}
+                                        {% endif %}
+                                        </a>
 				</h6>
 				<div align="left">
 					{% if item.img|length > 0 %}<img src="{{item.img}}"/>{% else %}{{item.latest}}{% endif %}
