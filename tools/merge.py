@@ -23,7 +23,7 @@
 #      http://safetybits.net
 #      http://twitter.com/sch3m4
 #
-# This tool is part of WhatsApp Forensic / https://sch3m4.github.com/wforensic
+# This tool is part of WhatsApp Forensic (https://github.com/sch3m4/wforensic)
 #
 # Version: 0.2b
 #
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     # Merges WhatsApp message files into  #
     #           a single one.             #
     #   This tool is part of WForensic    #
-    # https://sch3m4.github.com/wforensic #
+    # https://github.com/sch3m4/wforensic #
     #######################################
     """
 
