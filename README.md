@@ -19,14 +19,13 @@ http://www.securitybydefault.com/2012/05/whatsapp-forensics.html
 
 
 ## Dependences
-To run this tool properly you should have solved the following dependences:
+To properly run this tool you should have solved the following dependencies:
 	* Python interpreter
 	* DJango
-	* ReportLab
 
 In Debian-based systems, you can install them as follows:
 
-    $ sudo apt-get install python python-django python-reportlab
+    $ sudo apt-get install python python-django
 
 
 ## Retrieving msgstore.db and wa.db files
