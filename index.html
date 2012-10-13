@@ -39,36 +39,9 @@
         <ul></ul>
       </nav>
       <section>
-        <p>This project also provides tools for decrypting msgstored files and to merge many msgstore database files into a single one</p>
-
-<h2>Spanish post @ Security By Default</h2>
+        <h2>Spanish post @ Security By Default</h2>
 
 <p><a href="http://www.securitybydefault.com/2012/05/whatsapp-forensics.html">http://www.securitybydefault.com/2012/05/whatsapp-forensics.html</a></p>
-
-<p><strong>IMPORTANT:</strong> The path of msgstore.db and wa.db has been changed to the directory "databases/" inside the project root.</p>
-
-<h2>Features</h2>
-
-<p>Nowadays, this project provides the following features:</p>
-
-<ul>
-<li>Show latest contacted peers</li>
-<li>Show top contacted peers</li>
-<li>Activity chart of all contacted peers</li>
-<li>Chart showing messages sent and received</li>
-<li>Chart showing contacts with WhatsApp</li>
-<li>Display messages thumbnails images</li>
-<li>Display GPS coordinates in Google Maps</li>
-<li>Download media attachments</li>
-<li>Filter and show messages with media data</li>
-<li>Filter and show messages with GPS data</li>
-<li>Browse conversations</li>
-<li>Browse contacts</li>
-<li>Activity chart for each contact</li>
-<li>Download contacts information in XML format</li>
-<li>Decrypt msgstore.db.crypt files</li>
-<li>Merge many msgstore.db files into a single one</li>
-</ul><p>And growing, stay tuned!</p>
 
 <h2>Getting the source</h2>
 
@@ -80,6 +53,17 @@ remote: Total 288 (delta 82), reused 221 (delta 50)
 Receiving objects: 100% (288/288), 987.14 KiB | 229 KiB/s, done.
 Resolving deltas: 100% (82/82), done.
 ~$
+</code></pre>
+
+<h2>Dependences</h2>
+
+<p>To properly run this tool you should have solved the following dependencies:
+    * Python interpreter
+    * DJango</p>
+
+<p>In Debian-based systems, you can install them as follows:</p>
+
+<pre><code>$ sudo apt-get install python python-django
 </code></pre>
 
 <h2>Retrieving msgstore.db and wa.db files</h2>
@@ -127,7 +111,7 @@ So once it is installed, you can continue as follows:</p>
     ~/pyadb/example$
 </code></pre>
 
-<p><strong>IMPORTANT:</strong> This application example does not belongs to WForensic project, may be in the future?</p>
+<p><strong>IMPORTANT:</strong> This application example does not belongs to WForensic project. (May it be in the future?)</p>
 
 <p>Once you have exported the needed files, you'll need to change the files &amp; folder owner and untar the files:</p>
 
@@ -164,41 +148,32 @@ total 13060
 <p>Following the above instructions, the next step is to decrypt all the *.crypt files. To do that, follow the next steps:</p>
 
 <pre><code>$ cd ~/wforensic/tools/
-~/wforensic/tools$ python decrypt.py -d ~/pyadb/example/sdcard/WhatsApp/Databases/ ./plain/
+~/wforensic/tools$ python encryption.py --decrypt --dir encrypted/ --output-dir decrypted
 
     #######################################
-    #      WhatsApp Forensic Tool  0.3    #
+    #    WhatsApp Encryption Tool 0.3     #
     #-------------------------------------#
     #  Decrypts encrypted msgstore files  #
     #   This tool is part of WForensic    #
-    # https://github.com/sch3m4/wforensic #
+    # https://sch3m4.github.com/wforensic #
     #######################################
 
 [i] Setting AES key....... OK
 
-[+] Decrypting msgstore-2012-07-25.1.db.crypt (msgstore-2012-07-25.1.db) -&gt; 1640464 Bytes 
-    + 6246 Messages from 32 contacts
+[+] Decrypting msgstore-2012-09-19.1.db.crypt (msgstore-2012-09-19.1.db) -&gt; 2789392 Bytes 
+    + 11544 Messages from 44 contacts
 
-[+] Decrypting msgstore-2012-07-28.1.db.crypt (msgstore-2012-07-28.1.db) -&gt; 1680400 Bytes 
-    + 6435 Messages from 32 contacts
+[+] Decrypting msgstore-2012-09-18.1.db.crypt (msgstore-2012-09-18.1.db) -&gt; 2700304 Bytes 
+    + 11202 Messages from 43 contacts
 
-[+] Decrypting msgstore-2012-07-23.1.db.crypt (msgstore-2012-07-23.1.db) -&gt; 1575952 Bytes 
-    + 6042 Messages from 30 contacts
+[+] Decrypting msgstore-2012-09-15.1.db.crypt (msgstore-2012-09-15.1.db) -&gt; 2515984 Bytes 
+    + 10375 Messages from 43 contacts
 
-[+] Decrypting msgstore-2012-07-24.1.db.crypt (msgstore-2012-07-24.1.db) -&gt; 1613840 Bytes 
-    + 6218 Messages from 31 contacts
+[+] Decrypting msgstore-2012-09-20.1.db.crypt (msgstore-2012-09-20.1.db) -&gt; 2863120 Bytes 
+    + 11865 Messages from 44 contacts
 
-[+] Decrypting msgstore.db.crypt (msgstore.db) -&gt; 1736720 Bytes 
-    + 6681 Messages from 33 contacts
-
-[+] Decrypting msgstore-2012-07-27.1.db.crypt (msgstore-2012-07-27.1.db) -&gt; 1653776 Bytes 
-    + 6289 Messages from 32 contacts
-
-[+] Decrypting msgstore-2012-07-29.1.db.crypt (msgstore-2012-07-29.1.db) -&gt; 1697808 Bytes 
-    + 6516 Messages from 32 contacts
-
-[+] Decrypting msgstore-2012-07-30.1.db.crypt (msgstore-2012-07-30.1.db) -&gt; 1723408 Bytes 
-    + 6607 Messages from 32 contacts
+[+] Decrypting msgstore-2012-09-16.1.db.crypt (msgstore-2012-09-16.1.db) -&gt; 2649104 Bytes 
+    + 10963 Messages from 43 contacts
 
 [+] Done!
 
@@ -221,18 +196,15 @@ total 13060
     # https://github.com/sch3m4/wforensic #
     #######################################
 
-[i] Origin: plain/msgstore*
+[i] Origin: decrypted/msgstore*
 [i] Output file: ./msgstore.db
 
-+ Merging: msgstore.db 
-+ Merging: msgstore-2012-07-29.1.db  (Merged 0 contacts and 0 messages) 
-+ Merging: msgstore-2012-07-28.1.db  (Merged 0 contacts and 0 messages) 
-+ Merging: msgstore-2012-07-24.1.db  (Merged 0 contacts and 0 messages) 
-+ Merging: msgstore-2012-07-23.1.db  (Merged 0 contacts and 0 messages) 
-+ Merging: msgstore-2012-07-27.1.db  (Merged 0 contacts and 0 messages) 
-+ Merging: msgstore1.db  (Merged 0 contacts and 11 messages) 
-+ Merging: msgstore-2012-07-30.1.db  (Merged 0 contacts and 0 messages) 
-+ Merging: msgstore-2012-07-25.1.db  (Merged 0 contacts and 0 messages)
++ Merging: msgstore-2012-09-15.1.db 
++ Merging: msgstore-2012-09-20.1.db  (Merged 1 contacts and 1490 messages) 
++ Merging: msgstore-2012-09-16.1.db  (Merged 0 contacts and 0 messages) 
++ Merging: msgstore1.db  (Merged 0 contacts and 233 messages) 
++ Merging: msgstore-2012-09-18.1.db  (Merged 0 contacts and 0 messages) 
++ Merging: msgstore-2012-09-19.1.db  (Merged 0 contacts and 0 messages)
 
 ~/wforensic/tools$
 </code></pre>
@@ -258,13 +230,27 @@ wa.db
 ~/wforensic$
 </code></pre>
 
-<h2>Running DJango</h2>
+<h2>Running the application</h2>
 
-<pre><code>~/wforensic$ python wforensic/manage.py runserver
+<pre><code>~/wforensic$ ./run.sh 
+Python 2.7.3
+
+    ==========================================================================
+    =  ====  ====  ==        =================================================
+    =  ====  ====  ==  =======================================================
+    =  ====  ====  ==  =======================================================
+    =  ====  ====  ==  =========   ===  =   ====   ===  = ====   ===  ===   ==
+    =   ==    ==  ===      ====     ==    =  ==  =  ==     ==  =  ======  =  =
+    ==  ==    ==  ===  ========  =  ==  =======     ==  =  ===  ====  ==  ====
+    ==  ==    ==  ===  ========  =  ==  =======  =====  =  ====  ===  ==  ====
+    ===    ==    ====  ========  =  ==  =======  =  ==  =  ==  =  ==  ==  =  =
+    ====  ====  =====  =========   ===  ========   ===  =  ===   ===  ===   ==
+    ==========================================================================
+
 Validating models...
 
 0 errors found
-Django version 1.4, using settings 'wforensic.settings'
+Django version 1.4.1, using settings 'wforensic.settings'
 Development server is running at http://127.0.0.1:8000/
 Quit the server with CONTROL-C.
 </code></pre>
