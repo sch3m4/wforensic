@@ -25,37 +25,54 @@
 #
 # This tool is part of WhatsApp Forensic (https://github.com/sch3m4/wforensic)
 #
-# Version: 0.2b
+# Version: 0.3b
 #
 
 try:
     import os
-    import re
     import sys
     import shutil
     import sqlite3
+    import fnmatch
 except ImportError,e:
     print "[f] Required module missing. %s" % e.args[0]
     sys.exit(-1)
+
+COLUMNS = ['key_remote_jid','key_from_me','key_id','status','needs_push','data','timestamp','media_url','media_mime_type','media_wa_type','media_size','media_name','latitude','longitude','thumb_image','remote_resource','received_timestamp','send_timestamp','receipt_server_timestamp','receipt_device_timestamp','raw_data']
+
+tmessages = 0
+tcontacts = 0
 
 def merge(path,pattern,dest):
     """
     Reads from files in 'path' and dumps its contents to 'dest'
     """
+    global COLUMNS
+    global tmessages
+    global tcontacts
 
     first = 0
     output = None
     mtableid = 0
+    aux = []
+    
+    # find and store files
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if fnmatch.fnmatch(file,pattern):
+                aux.append(os.path.join(root,file))
+          
+    filenames = sorted(aux)
 
-    for filename in os.listdir(path):
-        if not os.path.isfile(path + filename) or not re.match(pattern, filename):
-            continue
-
+    for filename in filenames:
         print "\n+ Merging: %s" % filename ,
         sys.stdout.flush()
+        
+        if os.path.isdir(dest):
+            dest += '/' + os.path.basename(filename)
 
         if first == 0:
-            shutil.copy2 (path + filename, dest)
+            shutil.copy2 (filename, dest)
             first += 1
             continue
         elif output is None:
@@ -66,7 +83,7 @@ def merge(path,pattern,dest):
         cmessages = 0
 
         # get all remote_key_jid values from messages table
-        orig = sqlite3.connect(path + filename)
+        orig = sqlite3.connect(filename)
         rcursor = orig.cursor()
 
         if mtableid == 0:
@@ -93,18 +110,33 @@ def merge(path,pattern,dest):
                     data = (krjid[0], mtableid)
                     wcursor.execute("INSERT INTO chat_list (key_remote_jid,message_table_id) VALUES (?,?)", data)
                     ccontacts += 1
-                except:
-                    pass
-
+                except Exception,e:
+                    print "\n[e] Error merging contact: %s" % str(e)
+            
+        tcontacts += ccontacts
+            
+        # check if the column 'raw_data' exists (WhatsApp versions compatibility issue)
+        try:
+            rcursor.execute("SELECT COUNT(%s) FROM messages" % COLUMNS[len(COLUMNS) - 1])
+            ncols = len(COLUMNS)
+        except sqlite3.OperationalError,e:
+            if COLUMNS[len(COLUMNS)-1] in e.message:
+                ncols = len(COLUMNS) - 1
+            else:
+                print "\n[e] Undefined error: %s" % e.message
+                continue
+            
         # get all messages from messages table
-        rcursor.execute("SELECT key_remote_jid,key_from_me,key_id,status,needs_push,data,timestamp,media_url,media_mime_type,media_wa_type,media_size,media_name,latitude,longitude,thumb_image,remote_resource,received_timestamp,send_timestamp,receipt_server_timestamp,receipt_device_timestamp,raw_data FROM messages")
+        rcursor.execute("SELECT %s FROM messages" % ','.join(COLUMNS[:ncols]))
         messages = rcursor.fetchall()
         for msg in messages:
             try:
-                wcursor.execute("INSERT INTO messages(key_remote_jid,key_from_me,key_id,status,needs_push,data,timestamp,media_url,media_mime_type,media_wa_type,media_size,media_name,latitude,longitude,thumb_image,remote_resource,received_timestamp,send_timestamp,receipt_server_timestamp,receipt_device_timestamp,raw_data) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",msg)
+                wcursor.execute("INSERT INTO messages(%s) VALUES (%s)" % (','.join(COLUMNS[:ncols]),','.join('?' for x in range(0,ncols))),msg)
                 cmessages += 1
-            except:
+            except Exception,e:
                 pass
+            
+        tmessages += cmessages
 
         output.commit()
 
@@ -120,13 +152,13 @@ def merge(path,pattern,dest):
 if __name__ == "__main__":
     print """
     #######################################
-    #  WhatsApp Msgstore Merge Tool 0.2b  #
-    #-------------------------------------#
-    # Merges WhatsApp message files into  #
-    #           a single one.             #
-    #   This tool is part of WForensic    #
-    # https://github.com/sch3m4/wforensic #
-    #######################################
+    #  WhatsApp Msgstore Merge Tool 0.3  #
+    #------------------------------------#
+    # Merges WhatsApp message files into #
+    #           a single one.            #
+    #   This tool is part of WForensic   #
+    # http://sch3m4.github.com/wforensic #
+    ######################################
     """
 
     if len(sys.argv) != 4:
@@ -150,5 +182,5 @@ if __name__ == "__main__":
     print "[i] Output file: %s" % sys.argv[3]
 
     merge(sys.argv[1],sys.argv[2], sys.argv[3])
-    print "\n"
+    print "\n\n[i] Merged %d contacts and %d messages!\n" % (tcontacts,tmessages)
     sys.exit(0)

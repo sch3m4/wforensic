@@ -6,8 +6,8 @@ TEMPLATE_DEBUG = DEBUG
 
 SITE_ROOT = os.path.realpath(os.path.dirname(__file__))
 
-# tool version
-VERSION = '0.2b'
+# project version
+VERSION = '0.3b'
 
 # YOU CAN EDIT THE BELOW SETTINGS
 ##############################################################
@@ -16,6 +16,8 @@ CHATS_PER_PAGE = 15     # number of chats to show per page
 MESSAGES_PER_PAGE = 20  # number of messages to show per page
 LATEST_PEERS = 10       # number of peers to show as latest
 TOP_PEERS = 10          # number of peers to show as top
+DLAPIKEY = 'demo'       # detectlanguage.com API Key
+DEBUG = False           # Production enviroments
 ##############################################################
 
 ADMINS = (

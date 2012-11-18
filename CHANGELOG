@@ -1,3 +1,12 @@
+WForensic (0.3)
+	* Custom 404 & 405 error pages
+	* Show group members and messages count
+	* Added language detection by using detectlanguage.com (Internet access required! WARNING: Conversations fragments will be sent to detectlanguage.com)
+	* Template error fixed (major bug...)
+	* Improved encryption.py and merge.py scripts
+
+	-- Chema Garcia <chema@safetybits.net> (XX/11/2012) 
+
 WForensic (0.2)
 
 	* Updated attachments thumbnails display 

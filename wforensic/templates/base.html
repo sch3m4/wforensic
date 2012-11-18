@@ -49,9 +49,8 @@
 <a href="{% url messages_media %}">Media</a> ({{theader.media}}) |
 {% endif %}
 {% if theader.gps > 0 %}
-<a href="{% url messages_gps %}">GPS</a> ({{theader.gps}}) |
+<a href="{% url messages_gps %}">GPS</a> ({{theader.gps}})
 {% endif %}
-<a href="{% url search %}">Search</a>
 
 <div class="ym-wrapper">
 	<div class="ym-wbox">
@@ -64,7 +63,7 @@
 <div align="center">
 	<div class="footer">
 		<em>
-			<a href="http://sch3m4.github.com/wforensic" target="_blank">WhatsApp Forensic v0.2</a><br>
+			<a href="http://sch3m4.github.com/wforensic" target="_blank">WhatsApp Forensic v0.3b</a><br>
 			Written by <a href="mailto:chema@safetybits.net">Chema Garc&iacute;a</a> (aka <a href="https://twitter.com/sch3m4" target="_blank">sch3m4</a>) / <a href="http://safetybits.net" target="_blank">SafetyBits</a>
 		</em><br/><br/>
 		<img src="{{ STATIC_URL }}img/powered/django.png">

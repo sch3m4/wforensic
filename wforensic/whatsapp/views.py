@@ -1,3 +1,5 @@
+import json
+import urllib
 
 from os.path import basename
 from os.path import getsize
@@ -12,10 +14,14 @@ from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
 
-from wforensic.settings import CONTACTS_PER_PAGE, CHATS_PER_PAGE, MESSAGES_PER_PAGE, DATABASES
+from wforensic.settings import CONTACTS_PER_PAGE, CHATS_PER_PAGE, MESSAGES_PER_PAGE, DATABASES, DLAPIKEY
 from models import WaContacts, Messages
 from utils import get_latest_peers, get_top_peers, get_contacts_list, get_chat_list, get_chat_messages, get_messages_media
 from utils import get_messages_gps, get_md5_file, get_sha1_file, get_activity_data, get_contacts_xml, timestamp2utc
+
+
+def error404(request):
+    return render_to_response('whatsapp/errors/404.html', context_instance=RequestContext(request))
 
 
 def index(request):
@@ -63,6 +69,103 @@ def index(request):
             }
 
     return render_to_response('whatsapp/index.html', dic, context_instance=RequestContext(request))
+
+
+def language_detect(request, key):
+    """
+    Language detection
+    """
+    
+    LANGUAGES = {
+        'af': 'AFRIKAANS',
+        'ar': 'ARABIC',
+        'be': 'BELARUSIAN',
+        'bg': 'BULGARIAN',
+        'ca': 'CATALAN',
+        'chr': 'CHEROKEE',
+        'cs': 'CZECH',
+        'cy': 'WELSH',
+        'da': 'DANISH',
+        'de': 'GERMAN',
+        'dv': 'DHIVEHI',
+        'el': 'GREEK',
+        'en': 'ENGLISH',
+        'es': 'SPANISH',
+        'et': 'ESTONIAN',
+        'fa': 'PERSIAN',
+        'fi': 'FINNISH',
+        'fil': 'TAGALOG',
+        'fr': 'FRENCH',
+        'ga': 'IRISH',
+        'gu': 'GUJARATI',
+        'he': 'HEBREW',
+        'hi': 'HINDI',
+        'hr': 'CROATIAN',
+        'hu': 'HUNGARIAN',
+        'hy': 'ARMENIAN',
+        'id': 'INDONESIAN',
+        'is': 'ICELANDIC',
+        'it': 'ITALIAN',
+        'iu': 'INUKTITUT',
+        'ja': 'JAPANESE',
+        'ka': 'GEORGIAN',
+        'km': 'KHMER',
+        'kn': 'KANNADA',
+        'ko': 'KOREAN',
+        'lo': 'LAOTHIAN',
+        'lt': 'LITHUANIAN',
+        'lv': 'LATVIAN',
+        'mk': 'MACEDONIAN',
+        'ml': 'MALAYALAM',
+        'ms': 'MALAY',
+        'nb': 'NORWEGIAN',
+        'nl': 'DUTCH',
+        'or': 'ORIYA',
+        'pa': 'PUNJABI',
+        'pl': 'POLISH',
+        'pt': 'PORTUGUESE',
+        'ro': 'ROMANIAN',
+        'ru': 'RUSSIAN',
+        'si': 'SINHALESE',
+        'sk': 'SLOVAK',
+        'sl': 'SLOVENIAN',
+        'sr': 'SERBIAN',
+        'sv': 'SWEDISH',
+        'sw': 'SWAHILI',
+        'syr': 'SYRIAC',
+        'ta': 'TAMIL',
+        'te': 'TELUGU',
+        'th': 'THAI',
+        'tr': 'TURKISH',
+        'uk': 'UKRAINIAN',
+        'vi': 'VIETNAMESE',
+        'yi': 'YIDDISH',
+        'zh': 'CHINESE',
+        'zh-TW': 'CHINESET',
+        'xxx': 'Unknown'
+        }
+
+    retval = {}
+    msgs = get_chat_messages(key)
+    msgs_list = pagination(request, msgs, MESSAGES_PER_PAGE)
+    
+    try:
+        params = urllib.urlencode ( {'key': DLAPIKEY , 'q': '\n'.join(x['data'].encode('ascii','ignore') for x in msgs_list) } )
+        conn = urllib.urlopen("http://ws.detectlanguage.com/0.2/detect",params)
+        tmp = conn.read()
+        data = json.loads(tmp)
+        conn.close()
+        
+        retval['languages'] = []
+        value = 100
+        for lang in data['data']['detections']:
+            retval['languages'].append({'text': "%s %s" % (LANGUAGES[lang['language']],"(Reliable)" if lang['isReliable'] else ""), 'value': "%.3f" % lang['confidence']})
+            value -= lang['confidence']
+        retval['others'] = {'text': 'Others' , 'value': "%.3f" % value}
+    except Exception,e:
+        retval['error'] = str(e)
+    
+    return render_to_response('whatsapp/langdetect.html',retval, context_instance=RequestContext(request))        
 
 
 def chatlist(request):
@@ -117,7 +220,23 @@ def contact_profile(request, key):
         ret['whatsapp'] = WaContacts.objects.filter(jid=key).values('is_whatsapp_user')[0]['is_whatsapp_user']
         ret['status'] = WaContacts.objects.filter(jid=key).values('status')[0]['status']
 
-    return render_to_response('whatsapp/profile.html', {'contact': ret, 'activity': ret['activity']}, context_instance=RequestContext(request))
+    # if it's a group, get participants information
+    peers = None
+    if '-' in key:
+        peers = []
+        aux = Messages.objects.using('msgstore').filter(key_remote_jid=key).exclude(Q(remote_resource = '')).values('remote_resource').distinct()
+        for peer in aux:
+            peer = peer['remote_resource']
+            if not 'wa_contacts' in connection.introspection.table_names():
+                name = peer
+            else:
+                name = WaContacts.objects.filter(jid=peer).values('display_name')[0]
+            
+            count = Messages.objects.using('msgstore').filter(Q(key_remote_jid=key) & Q(remote_resource = peer)).count()
+                
+            peers.append({'id': peer , 'name': name , 'count': count})
+
+    return render_to_response('whatsapp/profile.html', {'contact': ret, 'activity': ret['activity'] , 'peers': peers }, context_instance=RequestContext(request))
 
 
 def contacts_download(request):
@@ -162,11 +281,15 @@ def single_chat(request, key):
     """
     Shows a single chat with a contact given by his jid (key)
     """
+    
+    if not Messages.objects.using('msgstore').filter(key_remote_jid=key).count() > 0:
+        return render_to_response('whatsapp/errors/404.html', context_instance=RequestContext(request)) 
 
     msgs = get_chat_messages(key)
     msgs_list = pagination(request, msgs, MESSAGES_PER_PAGE)
 
     dic = {
+        'peer': key,
         'chatmessages': msgs_list,
         'gps': Messages.objects.using('msgstore').exclude((Q(longitude='0.0') | Q(latitude='0.0'))),
         'media': Messages.objects.using('msgstore').exclude(media_url__isnull=True),

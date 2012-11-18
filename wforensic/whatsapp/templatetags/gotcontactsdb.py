@@ -3,7 +3,6 @@ from django.db import connection
 
 register = template.Library()
 
-
 class GotContactsDB(template.Node):
 
     def __init__(self, varname):

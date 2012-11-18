@@ -21,16 +21,18 @@
         <div class="ym-gbox">
         <div class="ym-gbox" align="left">
             <ul>
-                <li><b>Name:</b> {{ contact.name }}</li>
-                <li><b>Status:</b> {{ contact.status }}</li>
-                <li><b>Number:</b> {{ contact.number }}</li>
-                <li><b>Is WhatsApp user:</b>
-                {% ifequal contact.whatsapp 1 %}
-                    Yes
-                {% else %}
-                    No
+                <li><b>Name:</b> {{ contact.name }}{% if peers %} <i>(GROUP)</i>{% endif %}</li>
+                {% ifequal peers None %}
+	                <li><b>Status:</b> {{ contact.status }}</li>
+	                <li><b>Number:</b> {{ contact.number }}</li>
+	                <li><b>Is WhatsApp user:</b>
+	                {% ifequal contact.whatsapp 1 %}
+	                    Yes
+	                {% else %}
+	                    No
+	                {% endifequal %}
+	                </li>
                 {% endifequal %}
-                </li>
                 <li><b>Messages:</b> {{ contact.messages }}</li>
                 <li><b>First Seen:</b> {{ contact.first_seen }}</li>
                 <li><b>Last seen:</b> {{ contact.last_seen }}</li>
@@ -39,6 +41,15 @@
                 {% endif %}
                 {% if contact.gps_messages > 0 %}
                     <li><b>GPS Messages:</b> {{ contact.gps_messages }}</li>
+                {% endif %}
+                {% if peers %}
+                <li><b>Members:</b> {{ peers|length }}
+                	<ul>
+                	{% for peer in peers %}
+                	<li><a href="{{peer.id}}">{{peer.name}}</a> ({{peer.count}} Messages)</li>
+                	{% endfor %}
+                	</ul>
+                </li>
                 {% endif %}
             </ul>
             </br>

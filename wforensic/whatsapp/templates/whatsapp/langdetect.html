@@ -1,0 +1,101 @@
+<html>
+<head>
+	<script type="text/javascript" src="{{ STATIC_URL }}css/lib/jquery-1.7.1.min.js" ></script>
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/yaml/core/base.css" />
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/yaml/screen/typography.css" />
+	
+	<!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	
+	<!--[if lte IE 7]>
+		<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/yaml/core/iehacks.min.css" />
+	<![endif]-->
+
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/yaml/forms/gray-theme.css" />
+	
+	<style>
+	body { background-color:#f4f4f4; }
+	    .ym-wrapper {
+	   padding: 20px;
+    min-width: 760px;
+    max-width: 130em;
+    }
+    .ym-wbox { padding: 10px; }
+	.footer { width:auto; float:center; bottom: 3%; position:relative; }
+	</style>
+
+<script language=javascript>
+var chart;
+$(document).ready(function() {
+	chart = new Highcharts.Chart({
+		chart: {
+			renderTo: 'languages',
+			plotBackgroundColor: '#f4f4f4',
+			plotBorderWidth: null,
+			plotShadow: false
+		},
+		title: {
+			text: 'Languages Detection'
+		},
+		tooltip: {
+			formatter: function() {
+				return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
+			}
+		},
+		plotOptions: {
+			pie: {
+				allowPointSelect: true,
+				cursor: 'pointer',
+				dataLabels: {
+					enabled: true,
+					color: '#000000',
+					connectorColor: '#000000',
+					formatter: function() {
+						return '<b>'+ this.point.name +'</b>: '+ this.percentage.toFixed(2) +' %';
+					}
+				}
+			}
+		},
+		series: [{
+			type: 'pie',
+			name: 'Conversation languages',
+
+			data: [
+				{% for lang in languages %}
+					[ '{{lang.text}}' , {{lang.value}}],
+				{% endfor %}
+				{
+					name: '{{others.text}}',
+					y: {{others.value}},
+					sliced: true,
+					selected: true
+				}
+			]
+		}]
+	});
+});
+
+</script>
+	
+<title>WhatsApp Forensics | Language Detection </title>
+</head>
+<body>
+
+<script type="text/javascript" src="/static/js/highcharts.js"></script>
+<script type="text/javascript" src="/static/js/modules/exporting.js"></script>
+
+<table style="vertical-align:center">
+    <tr border="0">
+            <td>
+				{% if error %}
+				<div class="error">{{error}}</div>
+				{% else %}
+				<div id="languages" style="width: 600px; height: 400px; margin: 0 auto"></div>
+				{% endif %}
+            </td>
+    </tr>
+</table>
+
+</body>
+</html>

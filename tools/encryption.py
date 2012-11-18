@@ -53,13 +53,22 @@ MODE_DECRYPT = 2
 
 mode = None
 
+total_msg = 0
+total_contacts = 0
+
 
 def getinfo(path):
+    global total_msg
+    global total_contacts
+    
     db = sqlite3.connect(path)
     cur = db.cursor()
     res = cur.execute("SELECT COUNT(*) FROM messages UNION ALL SELECT COUNT(DISTINCT key_remote_jid) FROM chat_list").fetchall()
     cur.close()
     db.close()
+    
+    total_msg += res[0][0]
+    total_contacts += res[1][0]
 
     return (res[0][0], res[1][0])
 
@@ -144,19 +153,25 @@ def work_dir(path, dest):
 
     set_aes()
 
-    for filename in os.listdir(path):
-        if not os.path.isfile(path + filename):
-            continue
+    aux = []
+    
+    # find and store files
+    for root, dirs, files in os.walk(path):
+        for file in files:
+                aux.append(os.path.join(root,file))
+          
+    filenames = sorted(aux)
 
-        work_file(path + filename, dest )
+    for filename in filenames:
+        work_file( filename, dest )
 
     return
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     print """
     #######################################
-    #    WhatsApp Encryption Tool 0.3     #
+    #    WhatsApp Encryption Tool 0.4     #
     #-------------------------------------#
     #  Decrypts encrypted msgstore files  #
     #   This tool is part of WForensic    #
@@ -213,6 +228,8 @@ if __name__ == "__main__":
         work_dir(args.dir, args.output)
     else:  # single file
         work_file(args.file, args.output )
+        
+    print "\n[i] Gathered %d messages from %d contacts!" % (total_msg,total_contacts)
 
     print "\n[+] Done!\n"
     sys.exit(0)

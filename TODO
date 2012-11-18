@@ -1,0 +1,10 @@
+[H] Add support to other devices (BlackBerry,Nokia,Windows Phone...)
+[H] Add search support (messages, contacts, phone numbers, etc.)
+[N] Detect locally the conversations language
+[L] Show emoticons
+
+--
+Legend:
+	H: Hight
+	N: Normal
+	L: Low

@@ -2,7 +2,18 @@
 
 {% block body %}
 
+<script>
+function popitup(url) {
+	newwindow=window.open(url,'name','height=500px,width=700px');
+	if (window.focus) {newwindow.focus()}
+	return false;
+}
+</script>
+
 <div class="ym-g50">
+	{% ifequal PAG_TITLE "Conversation" %}
+	<a href="{% url language_detect key=peer %}?page={{ chatmessages.number }}" onclick="return popitup('{% url language_detect key=peer %}?page={{ chatmessages.number }}')">Detect Language</a><br>
+	{% endifequal %}
 	<div style="background: red;">
 	<h6><span style="color: white;">{{PAG_TITLE}}</span></h6>
 	</div>
@@ -39,6 +50,9 @@
 
 
 			<a href="{% url contact_profile key=item.key_remote_jid %}">{{item.display_name}}</a>
+			{% if item.peer %}
+			(<a href="{% url contact_profile key=item.peer_id %}">{{item.peer}}</a>)
+			{% endif %}
 
 			{% ifequal item.key_from_me 1 %}
 				&lArr; Me

@@ -14,6 +14,9 @@ try:
 except ImportError, e:
     print "[f] Required module missing. %s" % e.args[0]
     sys.exit(-1)
+    
+# raw_data / thumb_image
+raw_column = None
 
 
 def timestamp2utc(timestamp):
@@ -64,7 +67,21 @@ def get_sha1_file(path):
     return md5.hexdigest()
 
 
+def get_raw_column():
+    global raw_column
+    
+    if raw_column is None:
+        try:
+            data = Messages.objects.using('msgstore').values('raw_data')[:1][0]
+            raw_column = 'raw_data'
+        except:
+            raw_column = 'thumb_image'
+
+    return raw_column
+
+
 def get_latest_peers(latest=LATEST_PEERS):
+
     if latest > 0:
         peers = [c['key_remote_jid'] for c in Messages.objects.using('msgstore').values('key_remote_jid').exclude(Q(key_remote_jid=-1) | Q(key_remote_jid__icontains='-') | Q(key_remote_jid__startswith='Server')).annotate(models.Max('timestamp')).order_by('-timestamp__max')[:latest]]
     else:
@@ -73,7 +90,7 @@ def get_latest_peers(latest=LATEST_PEERS):
     ret = []
 
     for peer in peers:
-        data = Messages.objects.using('msgstore').filter(key_remote_jid=peer).values('data', '_id', 'media_wa_type','raw_data').annotate(models.Max('timestamp')).order_by('-timestamp__max')[:1][0]
+        data = Messages.objects.using('msgstore').filter(key_remote_jid=peer).values('data', '_id', 'media_wa_type',get_raw_column()).annotate(models.Max('timestamp')).order_by('-timestamp__max')[:1][0]
 
         try:
             peer_data = WaContacts.objects.filter(jid=peer).values('display_name', 'status')[0]
@@ -94,8 +111,8 @@ def get_latest_peers(latest=LATEST_PEERS):
         
         if data['data'] is not None:
             newdata['img'] = set_media(data['media_wa_type'], data['data'], peer , str(data['_id']), False)
-        elif data['raw_data'] is not None:
-            newdata['img'] = set_media(data['media_wa_type'], data['raw_data'], peer, str(data['_id']), True)
+        elif data[get_raw_column()] is not None:
+            newdata['img'] = set_media(data['media_wa_type'], data[get_raw_column()], peer, str(data['_id']), True)
         
         if newdata['data'] is None:
             newdata['data'] = ''
@@ -111,8 +128,8 @@ def get_top_peers(top=TOP_PEERS):
     else:
         _tmp = Messages.objects.using('msgstore').values('key_remote_jid').exclude((Q(key_remote_jid=-1) | Q(key_remote_jid__icontains='-') | Q(key_remote_jid__startswith="Server"))).annotate(models.Count('key_remote_jid')).order_by('-key_remote_jid__count')
     ret = []
-    for item in _tmp:
 
+    for item in _tmp:
         try:
             _aux = WaContacts.objects.filter(jid=item['key_remote_jid']).values('number', 'display_name', 'status', 'jid')[0]
         except:
@@ -197,7 +214,7 @@ def get_chat_list():
 
         _count = Messages.objects.using('msgstore').filter(key_remote_jid=item).count()
         try:
-            _tmp = Messages.objects.using('msgstore').filter(key_remote_jid=item).values('data', 'raw_data' 'media_wa_type', '_id').annotate(models.Max('timestamp')).order_by('-timestamp__max')[0]
+            _tmp = Messages.objects.using('msgstore').filter(key_remote_jid=item).values('data', get_raw_column(), 'media_wa_type', '_id').annotate(models.Max('timestamp')).order_by('-timestamp__max')[0]
         except:
             continue
         
@@ -214,14 +231,15 @@ def get_chat_list():
             print "ERROR: %s" % str(e)
             _tstamp = 'Unknown'
 
-            set_media(_tmp['media_wa_type'], _tmp['data'], str(_tmp['_id']))
+        set_media(_tmp['media_wa_type'], _tmp['data'], item, str(_tmp['_id']))
+        
 
         toadd = {'jid': item, 'display_name': _name['display_name'], 'number': _name['number'], 'count': _count, 'latest': _latest, 'timestamp': _tstamp}
 
         if _tmp['data'] is not None:
             toadd['img'] = set_media(_tmp['media_wa_type'], _tmp['data'], item , str(_tmp['_id']), False)
-        elif _tmp['raw_data'] is not None:
-            toadd['img'] = set_media(_tmp['media_wa_type'], _tmp['raw_data'], item, str(_tmp['_id']), True)
+        elif _tmp[get_raw_column()] is not None:
+            toadd['img'] = set_media(_tmp['media_wa_type'], _tmp[get_raw_column()], item, str(_tmp['_id']), True)
             
         _ret.append(toadd)
 
@@ -231,26 +249,32 @@ def get_chat_list():
 def get_chat_messages(jid = None):
 
     if jid is not None:
-        _msgs = Messages.objects.using('msgstore').filter(key_remote_jid=jid).values('media_wa_type', '_id', 'key_remote_jid', 'key_from_me', 'data', 'timestamp', 'received_timestamp', 'media_url', 'latitude', 'longitude', 'raw_data').order_by('-received_timestamp')
+        _msgs = Messages.objects.using('msgstore').filter(key_remote_jid=jid).values('media_wa_type', '_id', 'key_remote_jid', 'key_from_me', 'data', 'timestamp', 'remote_resource', 'received_timestamp', 'media_url', 'latitude', 'longitude', get_raw_column()).order_by('-received_timestamp')
     else:
-        _msgs = Messages.objects.using('msgstore').exclude(key_remote_jid=-1).values('media_wa_type', '_id', 'key_remote_jid', 'key_from_me', 'data', 'timestamp', 'received_timestamp', 'media_url', 'latitude', 'longitude', 'raw_data').order_by('-received_timestamp')
+        _msgs = Messages.objects.using('msgstore').exclude(key_remote_jid=-1).values('media_wa_type', '_id', 'key_remote_jid', 'key_from_me', 'data', 'timestamp', 'remote_resource', 'received_timestamp', 'media_url', 'latitude', 'longitude', get_raw_column()).order_by('-received_timestamp')
 
     _aux = []
     for item in _msgs:
         if not 'wa_contacts' in connection.introspection.table_names():
             _peer = {}
             _peer['display_name'] = '+' + item['key_remote_jid'].split('@')[0]
+            if item['remote_resource'] is not None and item['key_remote_jid'] != item['remote_resource'] and len(item['remote_resource']) > 0:
+                item['peer_id'] = item['remote_resource']
+                item['peer'] = item['remote_resource']
         else:
             _peer = WaContacts.objects.filter(jid=item['key_remote_jid']).values('display_name')[0]
-
+            if item['remote_resource'] is not None and item['key_remote_jid'] != item['remote_resource'] and len(item['remote_resource']) > 0:
+                item['peer_id'] = item['remote_resource']
+                item['peer'] = WaContacts.objects.filter(jid=item['remote_resource']).values('display_name')[0]
+                
         item['display_name'] = _peer['display_name']
         item['timestamp'] = timestamp2utc(float(item['timestamp']) / 1000)
         item['received_timestamp'] = timestamp2utc(float(item['received_timestamp']) / 1000)
         
         if item['data'] is not None:
             item['img'] = set_media(item['media_wa_type'], item['data'], item['key_remote_jid'], str(item['_id']), False)
-        elif item['raw_data'] is not None:
-            item['img'] = set_media(item['media_wa_type'], item['raw_data'], item['key_remote_jid'], str(item['_id']), True)
+        elif item[get_raw_column()] is not None:
+            item['img'] = set_media(item['media_wa_type'], item[get_raw_column()], item['key_remote_jid'], str(item['_id']), True)
 
             
         _aux.append(item)
@@ -260,7 +284,7 @@ def get_chat_messages(jid = None):
 
 def get_messages_media():
 
-    _msgs = Messages.objects.using('msgstore').exclude((Q(key_remote_jid=-1) | Q(media_url__isnull=True))).values('media_wa_type', '_id', 'key_remote_jid', 'key_from_me', 'data', 'raw_data', 'timestamp', 'received_timestamp', 'media_url', 'latitude', 'longitude').order_by('-timestamp')
+    _msgs = Messages.objects.using('msgstore').exclude((Q(key_remote_jid=-1) | Q(media_url__isnull=True))).values('media_wa_type', '_id', 'key_remote_jid', 'key_from_me', 'data', get_raw_column(), 'timestamp', 'received_timestamp', 'media_url', 'latitude', 'longitude').order_by('-timestamp')
 
     _aux = []
     for item in _msgs:
@@ -275,8 +299,8 @@ def get_messages_media():
         item['received_timestamp'] = timestamp2utc(float(item['received_timestamp']) / 1000)
         if item['data'] is not None:
             item['img'] = set_media(item['media_wa_type'], item['data'], item['key_remote_jid'], str(item['_id']), False)
-        elif item['raw_data'] is not None:
-            item['img'] = set_media(item['media_wa_type'], item['raw_data'], item['key_remote_jid'], str(item['_id']), True)
+        elif item[get_raw_column()] is not None:
+            item['img'] = set_media(item['media_wa_type'], item[get_raw_column()], item['key_remote_jid'], str(item['_id']), True)
 
         _aux.append(item)
 
@@ -285,7 +309,7 @@ def get_messages_media():
 
 def get_messages_gps():
 
-    _msgs = Messages.objects.using('msgstore').exclude((Q(key_remote_jid=-1) | Q(longitude='0.0') | Q(latitude='0.0'))).values('media_wa_type', '_id', 'key_remote_jid', 'key_from_me', 'data', 'raw_data', 'timestamp', 'received_timestamp', 'media_url', 'latitude', 'longitude').order_by('-timestamp')
+    _msgs = Messages.objects.using('msgstore').exclude((Q(key_remote_jid=-1) | Q(longitude='0.0') | Q(latitude='0.0'))).values('media_wa_type', '_id', 'key_remote_jid', 'key_from_me', 'data', get_raw_column(), 'timestamp', 'received_timestamp', 'media_url', 'latitude', 'longitude').order_by('-timestamp')
 
     _aux = []
     for item in _msgs:
@@ -302,7 +326,7 @@ def get_messages_gps():
         if item['data'] is not None:
             item['img'] = set_media(item['media_wa_type'], item['data'], item['key_remote_jid'], str(item['_id']), False)
         else:
-            item['img'] = set_media(item['media_wa_type'], item['raw_data'], item['key_remote_jid'], str(item['_id']), True)
+            item['img'] = set_media(item['media_wa_type'], item[get_raw_column()], item['key_remote_jid'], str(item['_id']), True)
             
         _aux.append(item)
 
