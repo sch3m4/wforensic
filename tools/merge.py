@@ -22,10 +22,11 @@
 # Written by Chema Garcia
 #      http://safetybits.net
 #      http://twitter.com/sch3m4
+# Updated by Roman Hujer (2015)
 #
 # This tool is part of WhatsApp Forensic (https://github.com/sch3m4/wforensic)
 #
-# Version: 0.3b
+# Version: 0.4
 #
 
 try:
@@ -34,11 +35,22 @@ try:
     import shutil
     import sqlite3
     import fnmatch
+    from operator import itemgetter
 except ImportError,e:
     print "[f] Required module missing. %s" % e.args[0]
     sys.exit(-1)
 
-COLUMNS = ['key_remote_jid','key_from_me','key_id','status','needs_push','data','timestamp','media_url','media_mime_type','media_wa_type','media_size','media_name','latitude','longitude','thumb_image','remote_resource','received_timestamp','send_timestamp','receipt_server_timestamp','receipt_device_timestamp','raw_data']
+COLUMNS = [
+  'key_remote_jid','key_from_me','key_id','status','needs_push','data','timestamp','media_url','media_mime_type',
+  'media_wa_type','media_size','media_name','media_hash','media_duration','origin','latitude','longitude','thumb_image',
+  'remote_resource','received_timestamp','send_timestamp','receipt_server_timestamp','receipt_device_timestamp',
+  'raw_data','recipient_count','read_device_timestamp','played_device_timestamp','media_caption','participant_hash'
+  ]
+
+chat_list_COLUMNS = [
+  'key_remote_jid','message_table_id','subject','creation','last_read_message_table_id',
+  'last_read_receipt_sent_message_table_id','archived','sort_timestamp','mod_tag'
+  ]
 
 tmessages = 0
 tcontacts = 0
@@ -50,8 +62,8 @@ def merge(path,pattern,dest):
     global COLUMNS
     global tmessages
     global tcontacts
+    global chat_list_COLUMNS
 
-    first = 0
     output = None
     mtableid = 0
     aux = []
@@ -64,20 +76,21 @@ def merge(path,pattern,dest):
           
     filenames = sorted(aux)
 
+    message_accumulator = []
+
+    # Not sure why this one was in cycle ... in the end I need just one output.
+    if os.path.isdir(dest):
+        dest += '/' + os.path.basename(filenames[0])
+    shutil.copy2 (filenames[0], dest)
+    output = sqlite3.connect(dest)
+    wcursor = output.cursor()
+
+
+
     for filename in filenames:
         print "\n+ Merging: %s" % filename ,
         sys.stdout.flush()
         
-        if os.path.isdir(dest):
-            dest += '/' + os.path.basename(filename)
-
-        if first == 0:
-            shutil.copy2 (filename, dest)
-            first += 1
-            continue
-        elif output is None:
-            output = sqlite3.connect(dest)
-            wcursor = output.cursor()
 
         ccontacts = 0
         cmessages = 0
@@ -107,8 +120,13 @@ def merge(path,pattern,dest):
             except:
                 try:
                     mtableid += 1  # increments message_table_id
-                    data = (krjid[0], mtableid)
-                    wcursor.execute("INSERT INTO chat_list (key_remote_jid,message_table_id) VALUES (?,?)", data)
+                    ncols = len(chat_list_COLUMNS)
+                    scols = '"' + '","'.join(chat_list_COLUMNS[:ncols]) + '"'
+                    rcursor.execute("SELECT %s FROM chat_list WHERE key_remote_jid=?" % scols,krjid)
+                    data = rcursor.fetchone() # shall be exactly one line
+                    data = data[:1]+("%s" % mtableid,)+data[2:] # cannot do just data[1]=mtableid, coz data is tuple
+                    squestionmarks=','.join('?' for x in range(0,ncols))
+                    wcursor.execute("INSERT INTO chat_list (%s) VALUES (%s)" % (scols,squestionmarks),data)
                     ccontacts += 1
                 except Exception,e:
                     print "\n[e] Error merging contact: %s" % str(e)
@@ -116,34 +134,50 @@ def merge(path,pattern,dest):
         tcontacts += ccontacts
             
         # check if the column 'raw_data' exists (WhatsApp versions compatibility issue)
+        # I don't really grasp purpose of the check, but I think the fix won't work.
         try:
-            rcursor.execute("SELECT COUNT(%s) FROM messages" % COLUMNS[len(COLUMNS) - 1])
+            rcursor.execute("SELECT COUNT('raw_data') FROM messages")
             ncols = len(COLUMNS)
         except sqlite3.OperationalError,e:
-            if COLUMNS[len(COLUMNS)-1] in e.message:
+            if 'raw_data' in e.message:
                 ncols = len(COLUMNS) - 1
             else:
                 print "\n[e] Undefined error: %s" % e.message
                 continue
             
         # get all messages from messages table
-        rcursor.execute("SELECT %s FROM messages" % ','.join(COLUMNS[:ncols]))
+        rcursor.execute("SELECT %s FROM messages" % ('"' + '","'.join(COLUMNS[:ncols]) + '"'))
         messages = rcursor.fetchall()
-        for msg in messages:
-            try:
-                wcursor.execute("INSERT INTO messages(%s) VALUES (%s)" % (','.join(COLUMNS[:ncols]),','.join('?' for x in range(0,ncols))),msg)
-                cmessages += 1
-            except Exception,e:
-                pass
-            
-        tmessages += cmessages
 
-        output.commit()
+        message_accumulator += messages
+
+        cmessages = len (messages)
+        tmessages += cmessages
 
         print " (Merged %d contacts and %d messages)" % (ccontacts,cmessages) ,
         sys.stdout.flush()
 
-        orig.close()
+    # Sort messages
+    sorted_messages = sorted(message_accumulator, key=itemgetter(6))
+
+    # Clear the table before inserting messages again
+    wcursor.execute("DELETE FROM messages")
+    wcursor.execute("DELETE FROM sqlite_sequence where name='messages'")
+    wcursor.execute("VACUUM")
+
+    # Insert all messages back into table
+    insert_query = "INSERT INTO messages(%s) VALUES (%s)" % ('"'+'","'.join(COLUMNS[:ncols])+'"',','.join('?' for x in range(0,ncols)))
+    for msg in sorted_messages:
+        try:
+            wcursor.execute(insert_query,msg)
+        except sqlite3.IntegrityError,e:
+            # Ignore the empty line duplication exception. Dunno what's the purpose of that line.
+            if msg[0] != "-1":
+                print e
+                print msg
+
+    output.commit()
+    orig.close()
 
     if output is not None:
         output.close()
@@ -152,7 +186,7 @@ def merge(path,pattern,dest):
 if __name__ == "__main__":
     print """
     #######################################
-    #  WhatsApp Msgstore Merge Tool 0.3  #
+    #  WhatsApp Msgstore Merge Tool 0.4  #
     #------------------------------------#
     # Merges WhatsApp message files into #
     #           a single one.            #
@@ -162,7 +196,7 @@ if __name__ == "__main__":
     """
 
     if len(sys.argv) != 4:
-        print "Usage: %s /path/to/databases/to/be/merged/ files_pattern /path/to/output\n" % sys.argv[0]
+        print "Usage: %s /path/to/databases/to/be/merged/ \"files_pattern\" /path/to/output\n" % sys.argv[0]
         sys.exit(-1)
 
     if sys.argv[1][-1:] != '/':

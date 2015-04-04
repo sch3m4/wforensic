@@ -143,7 +143,7 @@ Following the above instructions, the next step is to decrypt all the *.crypt fi
 At this step, you'll get many msgstore files, so to merge them you can use another tool located at wforensic/tools called 'merge.py':
 
     ~/wforensic/tools$ cp ~/pyadb/example/data/data/com.whatsapp/databases/msgstore.db plain/msgstore1.db
-    ~/wforensic/tools$ python merge.py plain/ msgstore* ./msgstore.db
+    ~/wforensic/tools$ python merge.py plain/ "msgstore*" ./msgstore.db
     
         #######################################
         #  WhatsApp Msgstore Merge Tool 0.2b  #
