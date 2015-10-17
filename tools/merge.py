@@ -112,7 +112,7 @@ def merge(path,pattern,dest):
         rcursor.execute("SELECT DISTINCT key_remote_jid FROM chat_list")
 
         # if each item from the above query does not exists, insert it
-        for krjid in rcursor:
+        for krjid in list(rcursor):
             wcursor.execute("SELECT key_remote_jid FROM chat_list WHERE key_remote_jid=?",krjid)
             try:
                 if len(wcursor.fetchone()[0]) > 0:
